@@ -15,10 +15,10 @@ def process(line):
     global isnode
     global nodename
     global isedge,edgesource,edgetarget
-    if line=='  node [':
+    if line.strip()=='node [':
         isnode=1
         return
-    if line=='  ]':
+    if line.strip()==']':
         isnode=0
         nodename=-1
         isedge=0
@@ -35,7 +35,7 @@ def process(line):
         elements=line.strip().split(' ')
         G.node[nodename][elements[0]]=elements[1].strip('\"')
         return
-    if line=='  edge [':
+    if line.strip()=='edge [':
         isedge=1
         return
     if isedge==1:
