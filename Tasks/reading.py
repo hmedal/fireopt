@@ -1,7 +1,10 @@
 import networkx as nx
+
 G=nx.DiGraph()
-filename='C:\\Users\\mcm600\\workspace\\testing\\SanBernadinotest.gml'
+
 #filename='C:\\Users\\mcm600\\git\\fireopt\\data\\SanBernardino.gml'
+filename='..\\data\\SanBernardino.gml'
+
 isnode=0
 nodename=-1
 isedge=0
@@ -54,5 +57,6 @@ with open(filename) as f:
     for line in f:
         process(line.splitlines()[0])
 
-print(G.nodes(data=True))
-print(G.edges(data=True))
+print(nx.shortest_path(G,1,120))
+#print(G.nodes(data=True))
+#print(G.edges(data=True))
