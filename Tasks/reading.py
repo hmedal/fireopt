@@ -3,18 +3,31 @@ G=nx.Graph()
 filename='C:\\Users\\mcm600\\workspace\\testing\\SanBernadinotest.gml'
 #filename='C:\\Users\\mcm600\\git\\fireopt\\data\\SanBernardino.gml'
 isnode=0
+nodename=-1
 
 def process(line):
     global isnode
+    global nodename
     if line=='  node [':
         isnode=1
         return
+    if line=='  ]':
+        isnode=0
+        nodename=-1
+        return
     if isnode==1:
         elements=line.strip().split(' ')
-        G.add_node(int(elements[1]),id=elements[1])
+        G.add_node(int(elements[1]),id=int(elements[1]))
+        nodename=int(elements[1])
+        isnode=2
+        return
+    if isnode==2:
+        elements=line.strip().split(' ')
+        G.node[nodename][elements[0]]=elements[1]
         print(elements)
-        isnode=0
-#        print(elements[1]) 
+
+    
+#    print(elements[1]) 
 #    print(line)
 
 with open(filename) as f:
