@@ -14,4 +14,7 @@ class OptimizationModel(object):
         '''
         Constructor
         '''
-        
+    
+    def createModel(self):
+        pass
+        # create the model
