@@ -3,7 +3,8 @@ import networkx as nx
 G=nx.DiGraph()
 
 #filename='C:\\Users\\mcm600\\git\\fireopt\\data\\SanBernardino.gml'
-filename='..\\data\\SanBernardino.gml'
+#filename='..\\data\\SanBernardino.gml'
+filename='../data/SanBernardino.gml'
 
 isnode=0
 nodename=-1
