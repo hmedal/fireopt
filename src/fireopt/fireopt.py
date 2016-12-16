@@ -15,5 +15,5 @@ if __name__ == "__main__":
     graph = readGraph(args.graph)
     paramsDict = json.loads(open(paramsFile).read())
     optModel = opt.OptimizationModel(graph, paramsFile, paramsDict)
-    # solve optimization model
-    # write results to file
+    optModel.solve()
+    optModel.writeResults('results.txt')
