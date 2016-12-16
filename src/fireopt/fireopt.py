@@ -1,13 +1,19 @@
 import argparse
+import networkx as nx
+import optmodel as opt
+import json
+
+def readGraph(graphFile):
+    return nx.read_gml(graphFile)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Read filenames.')
     parser.add_argument('-g', '--graph', help='the graph file', default = "../../data/SanteFe.gml")
-    parser.add_argument('-p', '--graph', help='the parameters file', default = "../../params/params.json")
+    parser.add_argument('-p', '--params', help='the parameters file', default = "../../params/paramsFile.json")
     args = parser.parse_args()
-    graphFile = args.graph
-    # read in data from file
-    # read in parameters from file
-    # create optimization model
+    paramsFile = args.params
+    graph = readGraph(args.graph)
+    paramsDict = json.loads(open(paramsFile).read())
+    optModel = opt.OptimizationModel(graph, paramsFile, paramsDict)
     # solve optimization model
     # write results to file
