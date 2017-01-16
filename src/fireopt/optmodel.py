@@ -1,7 +1,8 @@
 '''
 Created on Dec 13, 2016
 
-@author: hm568
+@author: hm568, tb2038
+
 '''
 
 class OptimizationModel(object):
