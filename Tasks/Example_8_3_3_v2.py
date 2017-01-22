@@ -1,3 +1,5 @@
+#author: mcm600
+
 import networkx as nx
 from gurobipy import *
 from comtypes.typeinfo import VARDESC
