@@ -2,7 +2,7 @@ import networkx as nx
 
 G=nx.DiGraph()
 
-#filename='C:\\Users\\mcm600\\git\\fireopt\\data\\SanBernardino.gml'
+#filename='C:\\Users\\mcm600\\git\\fireoptOLD\\data\\SanBernardino.gml'
 #filename='..\\data\\SanBernardino.gml'
 filename='../data/SanBernardino.gml'
 

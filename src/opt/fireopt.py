@@ -1,6 +1,6 @@
 import argparse
 import networkx as nx
-import optmodel as opt
+import src.fireoptOLD.optmodel as opt
 import json
 
 def readGraph(graphFile):
@@ -14,6 +14,6 @@ if __name__ == "__main__":
     paramsFile = args.params
     graph = readGraph(args.graph)
     paramsDict = json.loads(open(paramsFile).read())
-    optModel = opt.OptimizationModel(graph, paramsFile, paramsDict)
+    optModel = opt.OptimizationModel(graph, paramsDict)
     optModel.solve()
     optModel.writeResults('results.txt')
