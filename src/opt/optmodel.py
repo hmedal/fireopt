@@ -51,9 +51,14 @@ class OptimizationModel(gurobi.Model):
         The output is the second stage objective value for each scenario 
          
     ''' 
-    
+
+    def CalcAllSecondStageValues(self):
+        secondStageValues = {}
+        # fill in here
+        return secondStageValues
+
     def CalcSecondStageValue(self):
-        
+        # this will need to wait
         return SecondStageValue 
     
     '''
