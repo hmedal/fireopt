@@ -5,7 +5,10 @@ Created on Dec 13, 2016
 
 '''
 
-class OptimizationModel(object):
+import gurobipy as gurobi
+import networkx as nx
+
+class OptimizationModel(gurobi.Model):
     '''
     classdocs
     '''
@@ -14,14 +17,22 @@ class OptimizationModel(object):
     Constructor
     '''
     def __init__(self, graph, paramDF, Budget_param):
-        Fire_model = self.createModel()
-        Prob = self.ProbDecisionState(paramDF)
-        SecondStgValue = self.CalcSecondStageValue()
-        self.Solve(Fire_model, Budget_param, Prob, SecondStgValue)
+        self.Prob = self.ProbDecisionState(paramDF)
+        self.SecondStgValue = self.CalcSecondStageValue()
+        self.setParams(graph, paramDF, Budget_param)
+        self.createModel()
         
-    
+    def setParams(self, graph, paramDF, Budget_param):
+        self.graph = graph
+        self.paramDF = paramDF
+        self.Budget_param = Budget_param
+
     def createModel(self):
-        pass
+        for node in self.graph.nodes():
+            pass
+            #self.addVar()
+        #self.addConstr()
+        #self.setObjective()
         # create the model
         
     '''
