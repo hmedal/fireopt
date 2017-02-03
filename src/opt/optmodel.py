@@ -1,8 +1,6 @@
 '''
 Created on Dec 13, 2016
-
 @author: hm568, tb2038
-
 '''
 
 import gurobipy as gurobi
@@ -16,9 +14,11 @@ class OptimizationModel(gurobi.Model):
     '''
     Constructor
     '''
-    def __init__(self, graph, paramDF, Budget_param):
+    def __init__(self, graph, paramDF, Budget_param, nScenario):
+        self.nScenario = nScenario
+        self.Budget_param = Budget_param
         self.Prob = self.ProbDecisionState(paramDF)
-        self.SecondStgValue = self.CalcSecondStageValue()
+        self.SecondStgValues = self.CalcAllSecondStageValues()
         self.setParams(graph, paramDF, Budget_param)
         self.createModel()
         
@@ -54,6 +54,9 @@ class OptimizationModel(gurobi.Model):
 
     def CalcAllSecondStageValues(self):
         secondStageValues = {}
+        
+        for s in range(self.nScenario):
+            secondStageValues[s] = self.CalcSecondStageValue()
         # fill in here
         return secondStageValues
 
@@ -69,7 +72,7 @@ class OptimizationModel(gurobi.Model):
         returns the optimal solution (level of financial assistance offered) and the optimal solution (expected total acreage burned)
     '''
     
-    def Solve(self, createModel, Budget_param, ProbDecisionState, CalcSecondStageValue):
+    def Solve(self, createModel):
         
         
         return ObjVal, optSol
