@@ -20,6 +20,7 @@ class OptimizationModel(gurobi.Model):
         self.Prob = self.ProbDecisionState(paramDF)
         self.SecondStgValues = self.CalcAllSecondStageValues()
         self.setParams(graph, paramDF, Budget_param)
+        self.landowners = self.createLandownersList(graph)
         self.createModel()
         
     def setParams(self, graph, paramDF, Budget_param):
@@ -27,8 +28,12 @@ class OptimizationModel(gurobi.Model):
         self.paramDF = paramDF
         self.Budget_param = Budget_param
 
+    def createLandownersList(self, graph):
+        #iterate through nodes in graph and return a list of all the unique landowners
+        pass
+
     def createModel(self):
-        for node in self.graph.nodes():
+        for owner in self.landowners:
             pass
             #self.addVar()
         #self.addConstr()
