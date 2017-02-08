@@ -1,6 +1,6 @@
 '''
 Created on Dec 13, 2016
-@author: hm568, tb2038
+@author: hm568, tb2038, mcm600
 '''
 
 import gurobipy as gurobi
@@ -30,7 +30,12 @@ class OptimizationModel(gurobi.Model):
 
     def createLandownersList(self, graph):
         #iterate through nodes in graph and return a list of all the unique landowners
-        pass
+        landowners = []
+        for nodeNum,nodeAttr in list(graph.nodes(data=True)):
+            if nodeAttr['owner'] not in landowners:
+                landowners.append(nodeAttr['owner'])
+
+        return landowners
 
     def createModel(self):
         for owner in self.landowners:
