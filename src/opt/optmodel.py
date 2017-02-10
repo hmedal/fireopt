@@ -38,11 +38,38 @@ class OptimizationModel(gurobi.Model):
         return landowners
 
     def createModel(self):
+        w = []
+        y = []
+        
+        for n in range(self.nScenario):
+            for k in range(self.paramDF): #I'm not sure how the "paramDF" file will be structured--this is temporary
+                for owner in self.landowners:
+                    w[owner][k][n] = self.addVar(vtype=GRB.INTEGER, name="w_"+str(owner)+"_"+str(k)+"_"+str(n))
+        
+        for k in range(self.paramDF): #temporary until we have "paramDF" file
+            for owner in self.landowners:
+                y[owner][k] = self.addVar(vtype=GRB.BINARY, name="y_"+str(owner)+"_"+str(k))
+        
+        #Constraint 6e
+        self.addConstr(y[owner][k] for owner in self.landowners and k in range(self.paramDF) = 1)
+        
+        
+        decisionState = []
+        finAssist = []
         for owner in self.landowners:
-            pass
+            decisionState[owner] = self.addVar(vtype=GRB.BINARY, lb=0, ub=1, name=str(owner)+"_decision")
+            finAssist[owner] = self.addVar(vtype=GRB.INTEGER, lb=0, ub=self.Budget_param, name=str(owner)+"_assistance")
+
+        if finAssist[owner] > k:
+            decisionState[owner] = 1
+    
             #self.addVar()
         #self.addConstr()
+        #Constraint 6d
+        #the sum of the financial assistance offered to all landowners is less than or equal to the agency's budget
+        self.addConstr(quicksum(finAssist[owner] for owner in self.landowners) <= self.Budget_param, name="budget_constraint")
         #self.setObjective()
+        self.setObjective(quicksum , GRB.MINIMIZE)
         # create the model
         
     '''
