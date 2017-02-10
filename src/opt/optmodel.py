@@ -3,7 +3,7 @@ Created on Dec 13, 2016
 @author: hm568, tb2038, mcm600
 '''
 
-import gurobipy as gurobi
+from gurobipy import *
 import networkx as nx
 
 class OptimizationModel(gurobi.Model):
@@ -18,6 +18,7 @@ class OptimizationModel(gurobi.Model):
         self.nScenario = nScenario
         self.Budget_param = Budget_param
         self.Prob = self.ProbDecisionState(paramDF)
+        self.numberOfFinancialAsstValues = 5
         self.SecondStgValues = self.CalcAllSecondStageValues()
         self.setParams(graph, paramDF, Budget_param)
         self.landowners = self.createLandownersList(graph)
@@ -39,19 +40,20 @@ class OptimizationModel(gurobi.Model):
 
     def createModel(self):
         w = []
-        y = []
+        self.y = []
         
         for n in range(self.nScenario):
-            for k in range(self.paramDF): #I'm not sure how the "paramDF" file will be structured--this is temporary
+            for k in range(self.numberOfFinancialAsstValues): #I'm not sure how the "paramDF" file will be structured--this is temporary
                 for owner in self.landowners:
                     w[owner][k][n] = self.addVar(vtype=GRB.INTEGER, name="w_"+str(owner)+"_"+str(k)+"_"+str(n))
         
-        for k in range(self.paramDF): #temporary until we have "paramDF" file
+        for k in range(self.numberOfFinancialAsstValues): #temporary until we have "paramDF" file
             for owner in self.landowners:
-                y[owner][k] = self.addVar(vtype=GRB.BINARY, name="y_"+str(owner)+"_"+str(k))
+                self.y[owner][k] = self.addVar(vtype=GRB.BINARY, name="y_"+str(owner)+"_"+str(k))
         
         #Constraint 6e
-        self.addConstr(y[owner][k] for owner in self.landowners and k in range(self.paramDF) = 1)
+        for owner in self.landowners:
+            self.addConstr(quicksum([self.y[owner][k] for k in range(self.numberOfFinancialAsstValues)]) == 1)
         
         
         decisionState = []
@@ -69,7 +71,8 @@ class OptimizationModel(gurobi.Model):
         #the sum of the financial assistance offered to all landowners is less than or equal to the agency's budget
         self.addConstr(quicksum(finAssist[owner] for owner in self.landowners) <= self.Budget_param, name="budget_constraint")
         #self.setObjective()
-        self.setObjective(quicksum , GRB.MINIMIZE)
+        lastLandowerIndex = len(self.landowners) - 1
+        self.setObjective(quicksum([w[lastLandowerIndex][k][n] for k in range(self.numberOfFinancialAsstValues) for n in range(self.nScenario)]), GRB.MINIMIZE)
         # create the model
         
     '''
