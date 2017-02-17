@@ -63,8 +63,9 @@ class OptimizationModel(gurobi.Model):
                 self.addConstr()
                 
         #6c
-        #
-        
+        #Not sure where h_omega comes from
+        #Not sure if this is the proper formatting for this constraint
+        self.addContr(w[r][k][n] <= y[r][k]*h for r in range(1, len(self.owerNums)) for k in range(self.numberOfFinancialAsstValues) for n in range(self.nScenario))
         
         #Constraint 6d
         #the sum of the financial assistance offered to all landowners is less than or equal to the agency's budget
