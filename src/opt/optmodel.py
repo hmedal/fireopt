@@ -21,7 +21,7 @@ class OptimizationModel(gurobi.Model):
         self.numberOfFinancialAsstValues = 5
         self.SecondStgValues = self.CalcAllSecondStageValues()
         self.setParams(graph, paramDF, Budget_param)
-        self.landowners = self.createLandownersList(graph)
+        self.landowners[0] = self.createLandownersList(graph)
         self.createModel()
         
     def setParams(self, graph, paramDF, Budget_param):
@@ -65,7 +65,7 @@ class OptimizationModel(gurobi.Model):
         #6c
         #Not sure where h_omega comes from
         #Not sure if this is the proper formatting for this constraint
-        self.addContr(w[r][k][n] <= y[r][k]*h for r in range(1, len(self.owerNums)) for k in range(self.numberOfFinancialAsstValues) for n in range(self.nScenario))
+        self.addContr(w[r][k][n] <= self.y[r][k]*h for r in range(1, len(self.owerNums)) for k in range(self.numberOfFinancialAsstValues) for n in range(self.nScenario))
         
         #Constraint 6d
         #the sum of the financial assistance offered to all landowners is less than or equal to the agency's budget
