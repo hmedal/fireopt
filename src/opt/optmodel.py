@@ -31,29 +31,38 @@ class OptimizationModel(gurobi.Model):
 
     def createLandownersList(self, graph):
         #iterate through nodes in graph and return a list of all the unique landowners
-        landowners = []
+        landowners = {}
+        ownerNames = []
+        ownerNums = []
+        
         for nodeNum,nodeAttr in list(graph.nodes(data=True)):
-            if nodeAttr['owner'] not in landowners:
-                landowners.append(nodeAttr['owner'])
-
-        return landowners
+            if nodeAttr['owner'] not in ownerNames:
+                ownerNames.append(nodeAttr['owner'])
+        
+        ownerNameNum = zip(ownerNames, range(ownerNames.len()))
+        
+        for name, number in ownerNameNum:
+            landowners[name] = number.int()
+            ownerNums.append(number)
+        
+        return landowners, ownerNums
 
     def createModel(self):
-        w = []
-        self.y = []
+        w = {}
+        self.y = {}
         
         for n in range(self.nScenario):
             for k in range(self.numberOfFinancialAsstValues): #I'm not sure how the "paramDF" file will be structured--this is temporary
-                for owner in self.landowners:
-                    w[owner][k][n] = self.addVar(vtype=GRB.INTEGER, name="w_"+str(owner)+"_"+str(k)+"_"+str(n))
+                for j in self.landowners:
+                    w[j][k][n] = self.addVar(vtype=GRB.INTEGER, name="w_"+str(j)+"_"+str(k)+"_"+str(n))
         
         for k in range(self.numberOfFinancialAsstValues): #temporary until we have "paramDF" file
-            for owner in self.landowners:
-                self.y[owner][k] = self.addVar(vtype=GRB.BINARY, name="y_"+str(owner)+"_"+str(k))
+            for j in self.landowners:
+                self.y[j][k] = self.addVar(vtype=GRB.BINARY, name="y_"+str(j)+"_"+str(k))
         
         #Constraint 6e
-        for owner in self.landowners:
-            self.addConstr(quicksum([self.y[owner][k] for k in range(self.numberOfFinancialAsstValues)]) == 1)
+        for j in self.landowners:
+            self.addConstr(quicksum([self.y[j][k] for k in range(self.numberOfFinancialAsstValues)]) == 1)
         
         
         decisionState = []
