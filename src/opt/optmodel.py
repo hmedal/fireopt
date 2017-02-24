@@ -5,6 +5,10 @@ Created on Dec 13, 2016
 
 from gurobipy import *
 import networkx as nx
+import numpy as np
+import pandas as pd
+from sklearn import linear_model
+
 
 class OptimizationModel(gurobi.Model):
     '''
@@ -93,6 +97,40 @@ class OptimizationModel(gurobi.Model):
         The output is the probability of a landowner to accept a cost-share plan for a given amount of financial assistance
     '''
     def ProbDecisionState(self, paramDF):
+        Data_file = "LogRegression.csv"
+        Data_df = pd.read_csv(Data_file, delimiter=',', usecols=[2, 3])
+        
+        nOwner = len(Data_df)
+        nDecision_state = 2
+        nLevel = 5
+        
+        train_Feature = Data_df['Level'].as_matrix().reshape(-1, 1)  # we only take the first two features.
+        train_Target = Data_df['Decision'].as_matrix()
+        
+        h = .02  # step size in the mesh
+        
+        logreg = linear_model.LogisticRegression(C=1e5)
+        
+        # we create an instance of Neighbours Classifier and fit the data.
+        logreg.fit(train_Feature, train_Target)
+        
+        #np.set_printoptions(threshold=1000000)
+        
+        State_prob = logreg.predict_proba(train_Feature)
+        print State_prob
+        
+        # Put the result into a dictionary
+        ProbDecisionState = {}
+        for i in range(nOwner):
+            for j in range(nDecision_state):
+                ProbDecisionState[i, j, train_Feature[i,0]] = State_prob[i][j]
+        
+        ProbDict = {}
+        for s in range(self.nScenario):
+            for i in range(nOwner):
+               for j in range(nDecision_state):
+                    ProbDict[s, i, j, train_Feature[i,0]] = ProbDecisionState[i, j, train_Feature[i,0]]
+                    
         
         return ProbDict
     
