@@ -3,14 +3,14 @@ Created on Dec 13, 2016
 @author: hm568, tb2038, mcm600
 '''
 
-from gurobipy import *
+from gurobipy import Model, quicksum, GRB
 import networkx as nx
 import numpy as np
 import pandas as pd
 from sklearn import linear_model
 
 
-class OptimizationModel(gurobi.Model):
+class OptimizationModel(Model):
     '''
     classdocs
     '''
@@ -161,16 +161,4 @@ class OptimizationModel(gurobi.Model):
     def CalcSecondStageValue(self):
         # this will need to wait
         return SecondStageValue 
-    
-    '''
-    Solve method:
-        As input takes the first stage model, total budget of the decision maker, probabilities of the decision state, and second stage Value
-        for each scenario.
-        solve the 1st stage model and 
-        returns the optimal solution (level of financial assistance offered) and the optimal solution (expected total acreage burned)
-    '''
-    
-    def Solve(self, createModel):
-        
-        
-        return ObjVal, optSol
+

@@ -1,3 +1,4 @@
 {
-"budget" : 10
+"budget" : 10,
+  "numScenarios" : 100
 }
