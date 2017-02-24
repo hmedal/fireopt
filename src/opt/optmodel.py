@@ -55,38 +55,47 @@ class OptimizationModel(gurobi.Model):
         w = {}
         self.y = {}
         
-        #part of 6a
+        #part of 6a -- create w variables
         for n in range(self.nScenario):
             for k in range(self.numberOfFinancialAsstValues): #I'm not sure how the "paramDF" file will be structured--this is temporary
                 for j in self.ownerNums:
-                    w[j][k][n] = self.addVar(vtype=GRB.INTEGER, name="w_"+str(j)+"_"+str(k)+"_"+str(n))   
+                    w[j, k, n] = self.addVar(vtype=GRB.INTEGER, name="w_"+str(j)+"_"+str(k)+"_"+str(n))   
+        
+        #Constraint 6f
+        for k in range(self.numberOfFinancialAsstValues):
+            for j in self.ownerNums:
+                self.y[j, k] = self.addVar(vtype=GRB.BINARY, name="y_"+str(j)+"_"+str(k))
+        
+        self.update()
         
         #6b
-        for r in range(2, len(self.ownerNums):
+        for r in range(2, len(self.ownerNums)):
             for n in range(self.nScenario):
-                self.addConstr()
+                self.addConstr(quicksum(quicksum(self.ProbDict[n, r-1, l, k]*w[r-1,k,n] for l in (0,1))
+                                        for k in self.numberOfFinancialAsstValues) == quicksum(w[r, k, n] for k in self.numberOfFinancialAsstValues))
                 
         #6c
-        #Not sure where h_omega comes from
         #Not sure if this is the proper formatting for this constraint
-        self.addContr(w[r][k][n] <= self.y[r][k]*h for r in range(1, len(self.owerNums)) for k in range(self.numberOfFinancialAsstValues) for n in range(self.nScenario))
+        #Is this the proper use of self.SecondStgValues?
+        self.addContr(w[r, k, n] <= self.y[r, k]*self.SecondStgValues[n] for r in range(1, len(self.owerNums)) for k in range(self.numberOfFinancialAsstValues) for n in range(self.nScenario))
         
         #Constraint 6d
         #the sum of the financial assistance offered to all landowners is less than or equal to the agency's budget
-        self.addConstr(quicksum(finAssist[j] for j in self.ownerNums) <= self.Budget_param, name="budget_constraint")
+        #Where does C come from?
+        self.addConstr(quicksum(c[k]*self.y[j, k] for j in self.ownerNums for k in self.numberOfFinancialAsstValues) <= self.Budget_param, name="budget_constraint")
         
         #Constraint 6e
         for j in self.ownerNums:
-            self.addConstr(quicksum([self.y[j][k] for k in range(self.numberOfFinancialAsstValues)]) == 1)
-        
-        #Constraint 6f
-        for k in range(self.numberOfFinancialAsstValues): #temporary until we have "paramDF" file
-            for j in self.ownerNums:
-                self.y[j][k] = self.addVar(vtype=GRB.BINARY, name="y_"+str(j)+"_"+str(k))
+            self.addConstr(quicksum([self.y[j, k] for k in range(self.numberOfFinancialAsstValues)]) == 1)
                         
+        self.update()
+                                              
         #set objective
         lastLandowerIndex = len(self.ownerNums) - 1
-        self.setObjective(quicksum([w[lastLandowerIndex][k][n] for k in range(self.numberOfFinancialAsstValues) for n in range(self.nScenario)]), GRB.MINIMIZE)
+        
+        self.setObjective(quicksum(quicksum(w[lastLandownerIndex, k, n] for k in range(self.numberOfFinancialAsstValues)) for n in range(self.nScenario)), GRB.MINIMIZE)        
+
+        self.update()
 
         # create the model
         
