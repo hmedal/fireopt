@@ -170,3 +170,7 @@ class OptimizationModel(Model):
         # this will need to wait
         return SecondStageValue 
 
+    def writeResults(self, file):
+        
+        if self.status == GRB.Status.OPTIMAL:
+            self.write("%s.sol" % file)
