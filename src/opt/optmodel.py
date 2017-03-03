@@ -113,7 +113,7 @@ class OptimizationModel(Model):
         
         nOwner = len(Data_df)
         nDecision_state = 2
-        nLevel = 5
+        #nLevel = 5
         
         train_Feature = Data_df['Level'].as_matrix().reshape(-1, 1)  # we only take the first two features.
         train_Target = Data_df['Decision'].as_matrix()
