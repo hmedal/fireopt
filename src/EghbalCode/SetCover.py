@@ -16,6 +16,7 @@ Budget = 1
 ProbDuration = [1]
 Duration = [12*60]
 
+
 '''
 Duration = [12*60, 18*60, 24*60, 30*60, 36*60, 42*60, 48*60]
 if Budget == 1:

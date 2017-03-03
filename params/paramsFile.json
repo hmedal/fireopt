@@ -1,4 +1,8 @@
 {
 "budget" : 10,
-  "numScenarios" : 100
+  "numScenarios" : 100,
+  "Cost" : [500, 700, 1000, 1200, 1500],
+  
+
+
 }

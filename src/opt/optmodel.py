@@ -18,8 +18,10 @@ class OptimizationModel(Model):
     '''
     Constructor
     '''
-    def __init__(self, graph, paramDF, Budget_param, nScenario):
-        self.nScenario = nScenario
+    def __init__(self, graph, paramDF, Budget_param):
+        self.nScenario = paramDF['numScenarios']
+        self.C_k = paramDF['Cost']
+        #self.nScenario = nScenario
         self.Budget_param = Budget_param
         self.Prob = self.ProbDecisionState(paramDF)
         self.numberOfFinancialAsstValues = 5
@@ -82,7 +84,7 @@ class OptimizationModel(Model):
         #Constraint 6d
         #the sum of the financial assistance offered to all landowners is less than or equal to the agency's budget
         #Where does C come from?
-        self.addConstr(quicksum(c[k]*self.y[j, k] for j in self.ownerNums for k in self.numberOfFinancialAsstValues) <= self.Budget_param, name="budget_constraint")
+        self.addConstr(quicksum(quicksum(self.C_k[k]*self.y[j, k] for k in self.numberOfFinancialAsstValues)for j in self.ownerNums) <= self.Budget_param, name="budget_constraint")
         
         #Constraint 6e
         for j in self.ownerNums:
@@ -139,7 +141,13 @@ class OptimizationModel(Model):
             for i in range(nOwner):
                for j in range(nDecision_state):
                     ProbDict[s, i, j, train_Feature[i,0]] = ProbDecisionState[i, j, train_Feature[i,0]]
-                    
+        
+        for s in range(self.nScenario):
+            for i in range(nOwner):
+               for j in range(nDecision_state):
+                   
+        
+        
         
         return ProbDict
     
