@@ -8,7 +8,7 @@ import networkx as nx
 import numpy as np
 import pandas as pd
 from sklearn import linear_model
-
+import random
 
 class OptimizationModel(Model):
     '''
@@ -18,23 +18,22 @@ class OptimizationModel(Model):
     '''
     Constructor
     '''
-    def __init__(self, graph, paramDF, Budget_param):
+    def __init__(self, graph, paramDF):
         self.nScenario = paramDF['numScenarios']
         self.C_k = paramDF['Cost']
-        #self.nScenario = nScenario
-        self.Budget_param = Budget_param
+        self.Budget_param = paramDF['budget']
+        self.Decision_states = self.CreateScenarioDecisionStates()
         self.Prob = self.ProbDecisionState(paramDF)
-        self.numberOfFinancialAsstValues = 5
+        self.numberOfFinancialAsstValues = paramDF['numFinancialAssLevel']
         self.SecondStgValues = self.CalcAllSecondStageValues()
-        self.setParams(graph, paramDF, Budget_param)
+        self.setParams(graph, paramDF)
         self.landowners[0] = self.createLandownersList(graph)
         self.createModel()
         
-    def setParams(self, graph, paramDF, Budget_param):
+    def setParams(self, graph, paramDF):
         self.graph = graph
         self.paramDF = paramDF
-        self.Budget_param = Budget_param
-
+        
     def createLandownersList(self, graph):
         #iterate through nodes in graph and return a list of all the unique landowners
         landowners = {}
@@ -107,6 +106,14 @@ class OptimizationModel(Model):
         Calculate the probabilities of a landowner's decision state for a given amount of financial assistance
         The output is the probability of a landowner to accept a cost-share plan for a given amount of financial assistance
     '''
+    def CreateScenarioDecisionStates(self):
+        States = np.array([0, 1.0])
+        Decision_states = {}
+        for s in range(self.nScenario):
+            Decision_states[s] = np.random.choice(States, len(self.ownerNums))
+        
+        return Decision_states
+        
     def ProbDecisionState(self, paramDF):
         Data_file = "LogRegression.csv"
         Data_df = pd.read_csv(Data_file, delimiter=',', usecols=[2, 3])
@@ -138,16 +145,17 @@ class OptimizationModel(Model):
         
         ProbDict = {}
         for s in range(self.nScenario):
-            for i in range(nOwner):
-               for j in range(nDecision_state):
+            for i in range(len(self.ownerNums)):
+                for j in range(nDecision_state):
                     ProbDict[s, i, j, train_Feature[i,0]] = ProbDecisionState[i, j, train_Feature[i,0]]
         
         for s in range(self.nScenario):
-            for i in range(nOwner):
-               for j in range(nDecision_state):
-                   
-        
-        
+            for i in range(len(self.ownerNums)):
+                for k in range(self.numberOfFinancialAsstValues):
+                    l= 0
+                    if self.Decision_states[s][i]==0:
+                        l=1
+                    ProbDict[s, i, l, k]= 0
         
         return ProbDict
     
