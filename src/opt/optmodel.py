@@ -27,7 +27,7 @@ class OptimizationModel(Model):
         self.numberOfFinancialAsstValues = paramDF['numFinancialAssLevel']
         self.SecondStgValues = self.CalcAllSecondStageValues()
         self.setParams(graph, paramDF)
-        self.landowners[0] = self.createLandownersList(graph)
+        self.landowners[0], self.ownerNums= self.createLandownersList(graph)
         self.createModel()
         
     def setParams(self, graph, paramDF):
@@ -87,12 +87,12 @@ class OptimizationModel(Model):
         
         #Constraint 6e
         for j in self.ownerNums:
-            self.addConstr(quicksum([self.y[j, k] for k in range(self.numberOfFinancialAsstValues)]) == 1)
+            self.addConstr(quicksum(self.y[j, k] for k in range(self.numberOfFinancialAsstValues)) == 1)
                         
         self.update()
                                               
         #set objective
-        lastLandowerIndex = len(self.ownerNums) - 1
+        lastLandownerIndex = len(self.ownerNums) - 1
         
         self.setObjective(quicksum(quicksum(w[lastLandownerIndex, k, n] for k in range(self.numberOfFinancialAsstValues)) for n in range(self.nScenario)), GRB.MINIMIZE)        
 
