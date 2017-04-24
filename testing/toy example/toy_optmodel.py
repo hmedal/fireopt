@@ -19,15 +19,18 @@ class OptimizationModel():
     Constructor
     '''
     def __init__(self, graph, paramDF):
-        self.nScenario = paramDF['numScenarios']
-        self.C_k = paramDF['Cost']
-        self.Budget_param = paramDF['budget']
-        self.Decision_states = self.CreateScenarioDecisionStates()
-        self.Prob = self.ProbDecisionState(paramDF)
-        self.numberOfFinancialAsstValues = paramDF['numFinancialAssLevel']
-        self.SecondStgValues = self.CalcAllSecondStageValues()
         self.setParams(graph, paramDF)
-        self.landowners[0], self.ownerNums= self.createLandownersList(graph)
+        self.nScenario = paramDF['numScenarios']
+        self.C_k = paramDF['cost']
+        self.Budget_param = paramDF['budget']
+        #self.Decision_states = self.CreateScenarioDecisionStates()
+        #self.Prob = self.ProbDecisionState(paramDF)
+        self.numberOfFinancialAsstValues = paramDF['numFinancialAssLevel']
+        self.SecondStgValues = paramDF['SecondStgValue']
+        self.ProbDict = paramDF['ProbDict']
+        self.ownerNums = paramDF['numLandowners']
+        #self.SecondStgValues = self.CalcAllSecondStageValues()
+        #self.landowners[0], self.ownerNums= self.createLandownersList(graph)
         self.createModel()
         
     def setParams(self, graph, paramDF):
@@ -58,52 +61,84 @@ class OptimizationModel():
         
         m = Model("Optimization Model")
         
-        #Create variables
-        for n in range(self.nScenario):
-            for k in range(self.numberOfFinancialAsstValues):
-                for j in range(self.ownerNums+1):
+        #part of 6a -- create w variables
+        for n in range(1,self.nScenario+1):
+            for k in range(1,self.numberOfFinancialAsstValues+1): #I'm not sure how the "paramDF" file will be structured--this is temporary
+                for j in range(1,self.ownerNums+2):
                     w[j, k, n] = m.addVar(vtype=GRB.CONTINUOUS, name="w_"+str(j)+"_"+str(k)+"_"+str(n))   
-        
-        for k in range(self.numberOfFinancialAsstValues):
-            for j in range(self.ownerNums):
+
+        #Constraint 6f
+        for k in range(1,self.numberOfFinancialAsstValues+1):
+            for j in range(1,self.ownerNums+2):
                 self.y[j, k] = m.addVar(vtype=GRB.BINARY, name="y_"+str(j)+"_"+str(k))
-        
+
         m.update()
         
+        #6a continued
+        #for k in range(1,self.numberOfFinancialAsstValues+1):
+        for n in range(1,self.nScenario+1):
+            m.addConstr(quicksum(w[1,k,n] for k in range(1,self.numberOfFinancialAsstValues+1)) == self.SecondStgValues[n-1], name = "6a_1_"+str(n))
+        #        w[1,k,n] = self.SecondStgValues[n-1]
+        
         #6b
-        for n in range(self.nScenario):
-            m.addConstr(quicksum(w[0,k,n] for k in range(self.numberOfFinancialAsstValues)) == self.SecondStgValues[n], name = "6b_n"+str(n))
+        for r in range(2, self.ownerNums+2):
+            for n in range(1,self.nScenario+1):
+                m.addConstr(quicksum(quicksum(self.ProbDict["("+str(n)+", "+str(r-1)+", "+str(l)+", "+str(k)+")"]*w[r-1,k,n] for l in (0,1))
+                                     for k in range(1,self.numberOfFinancialAsstValues+1)) == quicksum(w[r, k, n] for k in range(1,self.numberOfFinancialAsstValues+1)), name = "6b_"+str(r)+"_"+str(n))
         
-        #6c
-        for r in range(2, self.ownerNums+1):
-            for n in range(self.nScenario):
-                m.addConstr(quicksum(quicksum(self.ProbDict[n, r-1, l, k]*w[r-1,k,n] for l in (0,1))
-                                        for k in self.numberOfFinancialAsstValues) == quicksum(w[r, k, n] for k in self.numberOfFinancialAsstValues), name = "6c_r"+str(r)+"_n"+str(n))
+        #for k in range(1,self.numberOfFinancialAsstValues+1):
+        #    for r in range(2, self.ownerNums+2):
+        #        for n in range(1,self.nScenario+1):
+        #            for l in (0,1):
+        #                m.addConstr(quicksum(quicksum(self.ProbDict["("+str(n)+", "+str(r-1)+", "+str(l)+", "+str(k)+")"]*w[r-1,k,n]) == quicksum(w[r, k, n]),
+        #                                     name = "6b_"+str(r)+"_"+str(k)+"_"+str(n)))
                 
-        #6d
-        #m.addContr(w[r, k, n] <= self.y[r, k]*self.SecondStgValues[n] for r in range(1, len(self.ownerNums)) for k in range(self.numberOfFinancialAsstValues) for n in range(self.nScenario))
+                
+        #6c
+        #Not sure if this is the proper formatting for this constraint
+        #Is this the proper use of self.SecondStgValues?
+        #for n in range(1,self.nScenario +1):
+        #    for k in range(1,self.numberOfFinancialAsstValues+1): #I'm not sure how the "paramDF" file will be structured--this is temporary
+        #        for r in range(1,self.ownerNums+2):
+                    
+        for k in range(1,self.numberOfFinancialAsstValues+1):
+            for r in range(1, self.ownerNums+2):
+                for n in range(1,self.nScenario+1):
+                    m.addConstr(w[r, k, n] <= self.y[r, k]*self.SecondStgValues[n-1], name = "6c_"+str(r)+"_"+str(k)+"_"+str(n))
+                    #print str(r)+"_"+str(k)+"_"+str(n)
+                                
+                                
+                                #for r in range(1, self.ownerNums+2) for k in range(1,self.numberOfFinancialAsstValues+1) for n in range(1,self.nScenario+1))
         
-        for k in range(self.numberOfFinancialAsstValues):
-            for r in range(self.ownerNums):
-                for n in range(self.nScenario):
-                    m.addConstr(w[r, k, n] <= self.y[r, k]*self.SecondStgValues[n-1], name = "6c_r"+str(r)+"_k"+str(k)+"_n"+str(n))
+        #Constraint 6d
+        #the sum of the financial assistance offered to all landowners is less than or equal to the agency's budget
+        #Where does C come from?
+        m.addConstr(quicksum(quicksum(self.C_k[k-1]*self.y[j, k] for k in range(1,self.numberOfFinancialAsstValues+1))for j in range(1,self.ownerNums+1)) <= self.Budget_param, name = "6d")
         
-        #6e
-        m.addConstr(quicksum(quicksum(self.C_k[k]*self.y[j, k] for k in self.numberOfFinancialAsstValues)for j in self.ownerNums) <= self.Budget_param, name = "6e")
-        
-        #6f
-        for j in range(self.ownerNums):
-            m.addConstr(quicksum(self.y[j, k] for k in range(self.numberOfFinancialAsstValues)) == 1, name = "6f_r"+str(j))
+        #Constraint 6e
+        for j in range(1,self.ownerNums+2):
+            m.addConstr(quicksum(self.y[j, k] for k in range(1,self.numberOfFinancialAsstValues+1)) == 1, name = "6e_"+str(j))
+                        
+        m.update()
                                               
-        #6a -- Objective
-        m.setObjective(quicksum(quicksum(w[len(self.ownerNums) - 1, k, n] for k in range(self.numberOfFinancialAsstValues)) for n in range(self.nScenario)), GRB.MINIMIZE)        
+        #set objective
+        lastLandownerIndex = self.ownerNums + 1
+        
+        m.setObjective(quicksum(quicksum(w[lastLandownerIndex, k, n] for k in range(1,self.numberOfFinancialAsstValues+1)) for n in range(1,self.nScenario+1)), GRB.MINIMIZE)        
 
         m.update()
         
         m.optimize()
         
+        if m.status == GRB.Status.OPTIMAL:
+            print ('\nOBJECTIVE VALUE: %g' % m.objVal)
+            
+        for v in m.getVars():
+            print('%s %g' % (v.varName, v.x))
+       
+        m.write('toy results.lp')
+        
         return m
-
         # create the model
         
     '''
