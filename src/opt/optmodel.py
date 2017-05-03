@@ -233,7 +233,7 @@ class OptimizationModel():
     
         return (SumBurnt, Burnt_WUI)
     
-    def Generate_Random_igpoint(self, Num_igpoints):
+    def Generate_Random_igpoint(self, Num_igpoints): #randomly generate upto 5 ignition point
 
         correctOrder = False
     
