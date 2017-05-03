@@ -9,6 +9,8 @@ import numpy as np
 import pandas as pd
 from sklearn import linear_model
 import random
+import time
+from Data_SantaFe import *
 
 class OptimizationModel(Model):
     '''
@@ -28,6 +30,7 @@ class OptimizationModel(Model):
         self.SecondStgValues = self.CalcAllSecondStageValues()
         self.setParams(graph, paramDF)
         self.landowners[0], self.ownerNums= self.createLandownersList(graph)
+        self.LandOwnerNodeList = self.LandOwnerNodeList()
         self.createModel()
         
     def setParams(self, graph, paramDF):
@@ -165,18 +168,203 @@ class OptimizationModel(Model):
         The output is the second stage objective value for each scenario 
          
     ''' 
+    def LandOwnerNodeList(self):
+        Graph= nx.read_gml('SantaFe.gml')
+        Landowners_node_lst = {}
+        for i in range(len(self.ownerNums)):
+            Landowners_node_lst[i] = [] 
+        
+        for node in Graph.nodes(data=True):
+        #print "node", node[0]
+            for i in range(len(self.ownerNums)): 
+                if int(node[1]['owner']) == i+1: ##checking the owner of a node in data.gml is the owner in the list
+                    Landowners_node_lst[i].append(node[0]) 
+    
+    def spread(self, ignition_points, Land):
 
+        SumBurnt = 0
+        Burnt_WUI = 0
+    
+        for nod in Land.nodes():
+            min_arrival_time = Duration[0] + 0.00001
+            for igpoint in ignition_points:
+    
+    
+                if SPLength[igpoint][nod] < min_arrival_time:
+                    min_arrival_time = SPLength[igpoint][nod]
+                    #Land.node[nod]['fire'] = igpoints.index(igpoint)+1
+                    Land.node[nod]['is_it_burned'] = 1
+    
+            Land.node[nod]['fire_arrival_time'] = min_arrival_time
+    
+    
+        for nod in Land.nodes():
+            if Land.node[nod]['fire_arrival_time'] <= fire_duration:
+                Land.node[nod]['is_it_burned'] = 1
+    
+                SumBurnt += ValueAtRisk[nod]
+    
+                if Land.node[nod]['fire'] == 1:
+                    Land.node[nod]['color'] = 'r'   ###what's the use of different color-illustration
+    
+                if Land.node[nod]['fire'] == 2:
+                    Land.node[nod]['color'] = 'y'
+    
+                if Land.node[nod]['fire'] == 3:
+                    Land.node[nod]['color'] = 'orange'
+    
+                if Land.node[nod]['fire'] == 4:
+                    Land.node[nod]['color'] = 'pink'
+    
+                if Land.node[nod]['fire'] == 5:
+                    Land.node[nod]['color'] = 'white'
+    
+                if Land.node[nod]['WUI'] == 1:
+                    Burnt_WUI += 1
+    
+        for i in range(0,len(igpoints)):
+            Land.node[igpoints[i]]['color'] = 'b'
+    
+        return (SumBurnt, Burnt_WUI)
+    
+    def Generate_Random_igpoint(self, Num_igpoints):
+
+        correctOrder = False
+    
+        while(not correctOrder):
+    
+            nodes = random.sample(range(0, N_Nodes-1), Num_igpoints)
+    
+            if Num_igpoints == 2:
+    
+                nod1 = nodes[0]
+                nod2 = nodes[1]
+    
+    
+                if (nod1 < nod2):
+                    correctOrder = True
+    
+            if Num_igpoints == 3:
+    
+                nod1 = nodes[0]
+                nod2 = nodes[1]
+                nod3 = nodes[2]
+    
+                if (nod1 < nod2 < nod3):
+                    correctOrder = True
+    
+            if Num_igpoints == 4:
+    
+                nod1 = nodes[0]
+                nod2 = nodes[1]
+                nod3 = nodes[2]
+                nod4 = nodes[3]
+    
+                if (nod1 < nod2 < nod3 < nod4):
+                    correctOrder = True
+    
+            if Num_igpoints == 5:
+    
+                nod1 = nodes[0]
+                nod2 = nodes[1]
+                nod3 = nodes[2]
+                nod4 = nodes[3]
+                nod5 = nodes[4]
+    
+                if (nod1 < nod2 < nod3 < nod4 < nod5):
+                    correctOrder = True
+    
+        return(nodes)
+    
+    def SDCalculate(self, Burnt,Number_scenario_counted,which):
+
+        SumBurnt = sum([i[which] for i in Burnt])
+        AverageBurnt = float(SumBurnt)/Number_scenario_counted
+    
+        SumSquare_deviation_of_mean = sum([(i[which] - AverageBurnt)**2 for i in Burnt])
+    
+        sdBurnt = (float(SumSquare_deviation_of_mean)/Number_scenario_counted)**0.5
+    
+        return(AverageBurnt, sdBurnt)
+    
+    
     def CalcAllSecondStageValues(self):
         secondStageValues = {}
-        
+        #secondStageValues[s] = self.CalcSecondStageValue()
         for s in range(self.nScenario):
-            secondStageValues[s] = self.CalcSecondStageValue()
+            Land = DGG.copy() ####DGG the data graph
+            Duration = [24*60]
+            fire_duration = Duration[0] ##data
+            for nod in Land.nodes():
+                Land.node[nod]['color'] = 'g'
+                Land.node[nod]['fire_arrival_time'] = fire_duration + 100 ## Add 100 to make it very large initially
+                Land.node[nod]['fire'] = 0
+                Land.node[nod]['is_it_burned'] = 0
+                if ValueAtRisk[nod] > 1:
+                    Land.node[nod]['WUI'] = 1
+                    Sum_WUI += 1
+                else:
+                    Land.node[nod]['WUI'] = 0
+            
+            fire_duration = Duration[0]
+            MaxDuration = max(Duration) + 100 ## Duration comes from where...why add 100?? 
+    
+            t = [[MaxDuration for i in range(N_Nodes)] for i in range(N_Nodes)]  ## where from N_nodes comes-the data
+    
+            for r in range(N_Nodes):
+    
+                for q in Neighbor[r]:  ##where the neighbors of the nodes are defined
+        
+                    distance_q_r = DGG[q][r]['weight']
+                    t[q][r] = distance_q_r/ROS[q][r] 
+                    
+                    'Distance between neighbor nodes is set'
+                    'to the weight of the graph, so we can use weight instead'
+    
+            ###modify the time distance for the treated cells
+            for Lowner in range(len(self.Decision_states[s])):
+                if self.Decision_states[s][Lowner]==1:
+                    for r in range(N_Nodes):
+                        for q in Neighbor[r]:
+                            if r or q in self.LandOwnerNodeList[Lowner]:
+                                t[q][r]= 100000*60
+            
+            '#  Rebuilding the graph with time attribute'
+            Landscape = DGG.copy() ##got the landscape with time as the distance
+            
+            for link in DGG.edges():
+                Landscape.add_edge(link[0],link[1], Time_Distance = t[link[0]][link[1]])
+            
+            SPLength = nx.all_pairs_dijkstra_path_length(Landscape, weight = 'Time_Distance')
+            Number_Sub_scenario_counted = 0
+            SDBurnt = 100
+            
+            Num_igpoints = 5
+            Max_Num__sub_Scenario = 5000
+            
+            nodes = [] 
+            
+            Burnt = []
+            #SumBurnt = 0
+            Total_Burnt= 0
+            AveBurnt = 0
+            
+            while (Number_Sub_scenario_counted < Max_Num__sub_Scenario):
+                nodes.append(self.Generate_Random_igpoint(Num_igpoints))
+                igpoints = nodes[Number_Sub_scenario_counted][:Num_igpoints]
+                Number_Sub_scenario_counted += 1
+                Burnt.append(self.spread(igpoints, Land))
+                (AveBurnt, SDBurnt) = self.SDCalculate(Burnt,Number_Sub_scenario_counted,0)
+            Total_Burnt = sum([i[0] for i in Burnt])
+            (AveWUIBurnt,STDWUIBurnt) = self.SDCalculate(Burnt,Number_Sub_scenario_counted,1)
+            secondStageValues[s] = Total_Burnt    
+              
         # fill in here
         return secondStageValues
 
-    def CalcSecondStageValue(self):
+    #def CalcSecondStageValue(self):
         # this will need to wait
-        return SecondStageValue 
+        #return SecondStageValue 
 
     def writeResults(self, file):
         
