@@ -12,7 +12,7 @@ import random
 import time
 from Data_SantaFe import *
 
-class OptimizationModel(Model):
+class OptimizationModel():
     '''
     classdocs
     '''
@@ -59,47 +59,53 @@ class OptimizationModel(Model):
         w = {}
         self.y = {}
         
-        #part of 6a -- create w variables
+        m = Model("Optimization Model")
+        
+        #Create variables
         for n in range(self.nScenario):
-            for k in range(self.numberOfFinancialAsstValues): #I'm not sure how the "paramDF" file will be structured--this is temporary
-                for j in self.ownerNums:
-                    w[j, k, n] = self.addVar(vtype=GRB.INTEGER, name="w_"+str(j)+"_"+str(k)+"_"+str(n))   
+            for k in range(self.numberOfFinancialAsstValues):
+                for j in range(self.ownerNums+1):
+                    w[j, k, n] = m.addVar(vtype=GRB.CONTINUOUS, name="w_"+str(j)+"_"+str(k)+"_"+str(n))   
         
-        #Constraint 6f
         for k in range(self.numberOfFinancialAsstValues):
-            for j in self.ownerNums:
-                self.y[j, k] = self.addVar(vtype=GRB.BINARY, name="y_"+str(j)+"_"+str(k))
+            for j in range(self.ownerNums):
+                self.y[j, k] = m.addVar(vtype=GRB.BINARY, name="y_"+str(j)+"_"+str(k))
         
-        self.update()
+        m.update()
         
         #6b
-        for r in range(2, len(self.ownerNums)):
-            for n in range(self.nScenario):
-                self.addConstr(quicksum(quicksum(self.ProbDict[n, r-1, l, k]*w[r-1,k,n] for l in (0,1))
-                                        for k in self.numberOfFinancialAsstValues) == quicksum(w[r, k, n] for k in self.numberOfFinancialAsstValues))
-                
+        for n in range(self.nScenario):
+            m.addConstr(quicksum(w[0,k,n] for k in range(self.numberOfFinancialAsstValues)) == self.SecondStgValues[n], name = "6b_n"+str(n))
+        
         #6c
-        #Not sure if this is the proper formatting for this constraint
-        #Is this the proper use of self.SecondStgValues?
-        self.addContr(w[r, k, n] <= self.y[r, k]*self.SecondStgValues[n] for r in range(1, len(self.owerNums)) for k in range(self.numberOfFinancialAsstValues) for n in range(self.nScenario))
+        for r in range(2, self.ownerNums+1):
+            for n in range(self.nScenario):
+                m.addConstr(quicksum(quicksum(self.ProbDict[n, r-1, l, k]*w[r-1,k,n] for l in (0,1))
+                                        for k in self.numberOfFinancialAsstValues) == quicksum(w[r, k, n] for k in self.numberOfFinancialAsstValues), name = "6c_r"+str(r)+"_n"+str(n))
+                
+        #6d
+        #m.addContr(w[r, k, n] <= self.y[r, k]*self.SecondStgValues[n] for r in range(1, len(self.ownerNums)) for k in range(self.numberOfFinancialAsstValues) for n in range(self.nScenario))
         
-        #Constraint 6d
-        #the sum of the financial assistance offered to all landowners is less than or equal to the agency's budget
-        #Where does C come from?
-        self.addConstr(quicksum(quicksum(self.C_k[k]*self.y[j, k] for k in self.numberOfFinancialAsstValues)for j in self.ownerNums) <= self.Budget_param, name="budget_constraint")
+        for k in range(self.numberOfFinancialAsstValues):
+            for r in range(self.ownerNums):
+                for n in range(self.nScenario):
+                    m.addConstr(w[r, k, n] <= self.y[r, k]*self.SecondStgValues[n-1], name = "6c_r"+str(r)+"_k"+str(k)+"_n"+str(n))
         
-        #Constraint 6e
-        for j in self.ownerNums:
-            self.addConstr(quicksum(self.y[j, k] for k in range(self.numberOfFinancialAsstValues)) == 1)
-                        
-        self.update()
+        #6e
+        m.addConstr(quicksum(quicksum(self.C_k[k]*self.y[j, k] for k in self.numberOfFinancialAsstValues)for j in self.ownerNums) <= self.Budget_param, name = "6e")
+        
+        #6f
+        for j in range(self.ownerNums):
+            m.addConstr(quicksum(self.y[j, k] for k in range(self.numberOfFinancialAsstValues)) == 1, name = "6f_r"+str(j))
                                               
-        #set objective
-        lastLandownerIndex = len(self.ownerNums) - 1
-        
-        self.setObjective(quicksum(quicksum(w[lastLandownerIndex, k, n] for k in range(self.numberOfFinancialAsstValues)) for n in range(self.nScenario)), GRB.MINIMIZE)        
+        #6a -- Objective
+        m.setObjective(quicksum(quicksum(w[len(self.ownerNums) - 1, k, n] for k in range(self.numberOfFinancialAsstValues)) for n in range(self.nScenario)), GRB.MINIMIZE)        
 
-        self.update()
+        m.update()
+        
+        m.optimize()
+        
+        return m
 
         # create the model
         
@@ -368,5 +374,5 @@ class OptimizationModel(Model):
 
     def writeResults(self, file):
         
-        if self.status == GRB.Status.OPTIMAL:
+        if m.status == GRB.Status.OPTIMAL:
             self.write("%s.sol" % file)
