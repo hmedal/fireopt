@@ -30,7 +30,7 @@ class OptimizationModel():
         self.ProbDict = paramDF['ProbDict']
         self.ownerNums = paramDF['numLandowners']
         #self.SecondStgValues = self.CalcAllSecondStageValues()
-        #self.landowners[0], self.ownerNums= self.createLandownersList(graph)
+        self.landowners, self.ownerNums, self.nOwners = self.createLandownersList(graph)
         self.createModel()
         
     def setParams(self, graph, paramDF):
@@ -42,6 +42,7 @@ class OptimizationModel():
         landowners = {}
         ownerNames = []
         ownerNums = []
+        nOwners = 0
         
         for nodeNum,nodeAttr in list(graph.nodes(data=True)):
             if nodeAttr['owner'] not in ownerNames:
@@ -50,10 +51,15 @@ class OptimizationModel():
         ownerNameNum = zip(ownerNames, range(len(ownerNames)))
         
         for name, number in ownerNameNum:
-            landowners[name] = number.int()
+            landowners[name] = int(number)
             ownerNums.append(number)
+            nOwners = nOwners+1
         
-        return landowners, ownerNums
+        print landowners
+        print ownerNums
+        print nOwners
+        
+        return landowners, ownerNums, nOwners
 
     def createModel(self):
         w = {}
@@ -64,12 +70,12 @@ class OptimizationModel():
         #part of 6a -- create w variables
         for n in range(1,self.nScenario+1):
             for k in range(1,self.numberOfFinancialAsstValues+1): #I'm not sure how the "paramDF" file will be structured--this is temporary
-                for j in range(1,self.ownerNums+2):
+                for j in range(1,self.nOwners+2):
                     w[j, k, n] = m.addVar(vtype=GRB.CONTINUOUS, name="w_"+str(j)+"_"+str(k)+"_"+str(n))   
 
         #Constraint 6f
         for k in range(1,self.numberOfFinancialAsstValues+1):
-            for j in range(1,self.ownerNums+2):
+            for j in range(1,self.nOwners+2):
                 self.y[j, k] = m.addVar(vtype=GRB.BINARY, name="y_"+str(j)+"_"+str(k))
 
         m.update()
@@ -81,7 +87,7 @@ class OptimizationModel():
         #        w[1,k,n] = self.SecondStgValues[n-1]
         
         #6b
-        for r in range(2, self.ownerNums+2):
+        for r in range(2, self.nOwners+2):
             for n in range(1,self.nScenario+1):
                 m.addConstr(quicksum(quicksum(self.ProbDict["("+str(n)+", "+str(r-1)+", "+str(l)+", "+str(k)+")"]*w[r-1,k,n] for l in (0,1))
                                      for k in range(1,self.numberOfFinancialAsstValues+1)) == quicksum(w[r, k, n] for k in range(1,self.numberOfFinancialAsstValues+1)), name = "6b_"+str(r)+"_"+str(n))
@@ -102,7 +108,7 @@ class OptimizationModel():
         #        for r in range(1,self.ownerNums+2):
                     
         for k in range(1,self.numberOfFinancialAsstValues+1):
-            for r in range(1, self.ownerNums+2):
+            for r in range(1, self.nOwners+2):
                 for n in range(1,self.nScenario+1):
                     m.addConstr(w[r, k, n] <= self.y[r, k]*self.SecondStgValues[n-1], name = "6c_"+str(r)+"_"+str(k)+"_"+str(n))
                     #print str(r)+"_"+str(k)+"_"+str(n)
@@ -113,16 +119,16 @@ class OptimizationModel():
         #Constraint 6d
         #the sum of the financial assistance offered to all landowners is less than or equal to the agency's budget
         #Where does C come from?
-        m.addConstr(quicksum(quicksum(self.C_k[k-1]*self.y[j, k] for k in range(1,self.numberOfFinancialAsstValues+1))for j in range(1,self.ownerNums+1)) <= self.Budget_param, name = "6d")
+        m.addConstr(quicksum(quicksum(self.C_k[k-1]*self.y[j, k] for k in range(1,self.numberOfFinancialAsstValues+1))for j in range(1,self.nOwners+1)) <= self.Budget_param, name = "6d")
         
         #Constraint 6e
-        for j in range(1,self.ownerNums+2):
+        for j in range(1,self.nOwners+2):
             m.addConstr(quicksum(self.y[j, k] for k in range(1,self.numberOfFinancialAsstValues+1)) == 1, name = "6e_"+str(j))
                         
         m.update()
                                               
         #set objective
-        lastLandownerIndex = self.ownerNums + 1
+        lastLandownerIndex = self.nOwners + 1
         
         m.setObjective(quicksum(quicksum(w[lastLandownerIndex, k, n] for k in range(1,self.numberOfFinancialAsstValues+1)) for n in range(1,self.nScenario+1)), GRB.MINIMIZE)        
 

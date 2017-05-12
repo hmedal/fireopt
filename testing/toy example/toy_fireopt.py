@@ -8,7 +8,7 @@ def readGraph(graphFile):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Read filenames.')
-    parser.add_argument('-g', '--graph', help='the graph file', default = "SantaFe.gml")
+    parser.add_argument('-g', '--graph', help='the graph file', default = "toyLandscape.gml")
     parser.add_argument('-p', '--params', help='the parameters file', default = "toyParams.json")
     args = parser.parse_args()
    # paramsFile = args.params
