@@ -97,7 +97,7 @@ class OptimizationModel():
         #for k in range(1,self.numberOfFinancialAsstValues+1):
         #6a updated
         for n in range(1,self.nScenario+1):
-            m.addConstr(quicksum(w[1,k,n] for k in range(1,self.numberOfFinancialAsstValues+1)) == self.SecondStgValues[n-1]*quicksum(self.ProbDict["("+str(n)+", 1, "+str(l)+", "+str(k)+")"]*self.y[1, k] for l in (0,1) for k in range(1,self.numberOfFinancialAsstValues+1)), name = "6a_1_"+str(n))
+            m.addConstr(quicksum(w[1,k,n] for k in range(1,self.numberOfFinancialAsstValues+1)) == self.SecondStgValues[n-1]*quicksum(self.DecisionProb[n,1,k]*self.y[1, k] for k in range(1,self.numberOfFinancialAsstValues+1)), name = "6a_1_"+str(n))
         #        w[1,k,n] = self.SecondStgValues[n-1]
         
         #6b updated

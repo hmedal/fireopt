@@ -30,6 +30,7 @@ class OptimizationModel():
         self.SecondStgValues = self.CalcAllSecondStageValues()
         self.setParams(graph, paramDF)
         self.landowners, self.ownerNums, self.nOwners = self.createLandownersList(graph)
+        self.DecisionProb = self.filterProbDict()
         self.LandOwnerNodeList = self.LandOwnerNodeList()
         self.createModel()
         
@@ -57,6 +58,18 @@ class OptimizationModel():
         
         return landowners, ownerNums, nOwners
 
+    def filterProbDict(self):
+        DecisionProb = {}
+        
+        for n in range(self.nScenario):
+            for k in range(self.numberOfFinancialAsstValues):
+                for j in range(self.nOwners):
+                    for l in (0,1):
+                        if self.ProbDict[n,j,l,k] > 0:
+                            DecisionProb[n,j,k] = self.ProbDict[n,j,l,k]
+                            
+        return DecisionProb
+
     def createModel(self):
         w = {}
         self.y = {}
@@ -66,50 +79,54 @@ class OptimizationModel():
         #Create variables
         for n in range(self.nScenario):
             for k in range(self.numberOfFinancialAsstValues):
-                for j in range(self.nOwners+1):
-                    w[j, k, n] = m.addVar(vtype=GRB.CONTINUOUS, name="w_"+str(j)+"_"+str(k)+"_"+str(n))   
+                for j in range(self.nOwners):
+                    w[j, k, n] = m.addVar(vtype=GRB.CONTINUOUS, name="w_j"+str(j)+"_k"+str(k)+"_n"+str(n))   
         
         for k in range(self.numberOfFinancialAsstValues):
-            for j in range(self.nOwners+1):
-                self.y[j, k] = m.addVar(vtype=GRB.BINARY, name="y_"+str(j)+"_"+str(k))
+            for j in range(self.nOwners):
+                self.y[j, k] = m.addVar(vtype=GRB.BINARY, name="y_j"+str(j)+"_k"+str(k))
         
         m.update()
         
-        #6b
+        #6a updated
         for n in range(self.nScenario):
-            m.addConstr(quicksum(w[0,k,n] for k in range(self.numberOfFinancialAsstValues)) == self.SecondStgValues[n], name = "6b_n"+str(n))
+            m.addConstr(quicksum(w[0,k,n] for k in range(self.numberOfFinancialAsstValues)) == 
+                        self.SecondStgValues[n]*quicksum(self.DecisionProb[n,0,k]*self.y[0, k]
+                        for k in range(self.numberOfFinancialAsstValues)), name = "6a_n"+str(n))
         
-        #6c
-        for r in range(2, self.nOwners+1):
+        #6b updated
+        for r in range(1,self.nOwners):
             for n in range(self.nScenario):
-                m.addConstr(quicksum(quicksum(self.ProbDict[n, r-1, l, k]*w[r-1,k,n] for l in (0,1))
-                                        for k in self.numberOfFinancialAsstValues) == quicksum(w[r, k, n] for k in self.numberOfFinancialAsstValues), name = "6c_r"+str(r)+"_n"+str(n))
-                
-        #6d
-        #m.addContr(w[r, k, n] <= self.y[r, k]*self.SecondStgValues[n] for r in range(1, len(self.ownerNums)) for k in range(self.numberOfFinancialAsstValues) for n in range(self.nScenario))
+                m.addConstr(quicksum(w[r-1,k,n] for k in range(self.numberOfFinancialAsstValues)) ==
+                            quicksum(w[r,k,n]*(1/self.DecisionProb[n,r,k])
+                            for k in range(self.numberOfFinancialAsstValues)),
+                            name = "6b_j"+str(r)+"_n"+str(n))
         
+        #6c updated
         for k in range(self.numberOfFinancialAsstValues):
-            for r in range(self.nOwners+1):
+            for r in range(self.nOwners):
                 for n in range(self.nScenario):
-                    m.addConstr(w[r, k, n] <= self.y[r, k]*self.SecondStgValues[n-1], name = "6c_r"+str(r)+"_k"+str(k)+"_n"+str(n))
+                    m.addConstr(w[r, k, n] <= self.y[r, k]*self.SecondStgValues[n],
+                                name = "6c_j"+str(r)+"_k"+str(k)+"_n"+str(n))
         
         #6e
-        m.addConstr(quicksum(quicksum(self.C_k[k]*self.y[j, k] for k in range(self.numberOfFinancialAsstValues)) for j in range(self.nOwners+1)) <= self.Budget_param, name = "6e")
+        m.addConstr(quicksum(quicksum(self.C_k[k]*self.y[j, k] for k in range(self.numberOfFinancialAsstValues))
+                            for j in range(self.nOwners)) <= self.Budget_param, name = "6e")
         
         #6f
         for j in range(self.nOwners):
-            m.addConstr(quicksum(self.y[j, k] for k in range(self.numberOfFinancialAsstValues)) == 1, name = "6f_r"+str(j))
+            m.addConstr(quicksum(self.y[j, k] for k in range(self.numberOfFinancialAsstValues)) == 1,
+                        name = "6f_j"+str(j))
                                               
         #6a -- Objective
-        m.setObjective(quicksum(quicksum(w[self.nOwners+1, k, n] for k in range(self.numberOfFinancialAsstValues)) for n in range(self.nScenario)), GRB.MINIMIZE)        
+        m.setObjective(quicksum(quicksum(w[self.nOwners-1, k, n] for k in range(self.numberOfFinancialAsstValues))
+                                for n in range(self.nScenario)), GRB.MINIMIZE)        
 
         m.update()
         
         m.optimize()
         
         return m
-
-        # create the model
         
     '''
     ProbDecisionState method:
