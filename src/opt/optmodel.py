@@ -42,6 +42,7 @@ class OptimizationModel():
         landowners = {}
         ownerNames = []
         ownerNums = []
+        #test..
         
         for nodeNum,nodeAttr in list(graph.nodes(data=True)):
             if nodeAttr['owner'] not in ownerNames:
