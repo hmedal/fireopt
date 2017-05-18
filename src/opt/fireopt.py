@@ -14,6 +14,7 @@ if __name__ == "__main__":
     paramsFile = args.params
     graph = readGraph(args.graph)
     paramsDict = json.loads(open(paramsFile).read())
-    optModel = opt.OptimizationModel(graph, paramsDict, None, None)
+#    optModel = opt.OptimizationModel(graph, paramsDict, None, None)
+    optModel = opt.OptimizationModel(graph, paramsDict)
     optModel.optimize()
     optModel.writeResults('results.txt')

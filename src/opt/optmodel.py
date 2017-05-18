@@ -10,7 +10,7 @@ import pandas as pd
 from sklearn import linear_model
 import random
 import time
-from Data_SantaFe import *
+#from Data_SantaFe import *
 
 class OptimizationModel():
     '''
@@ -24,12 +24,13 @@ class OptimizationModel():
         self.nScenario = paramDF['numScenarios']
         self.C_k = paramDF['Cost']
         self.Budget_param = paramDF['budget']
+        self.landowners, self.ownerNums, self.nOwners = self.createLandownersList(graph)
         self.Decision_states = self.CreateScenarioDecisionStates()
         self.Prob = self.ProbDecisionState(paramDF)
         self.numberOfFinancialAsstValues = paramDF['numFinancialAssLevel']
         self.SecondStgValues = self.CalcAllSecondStageValues()
         self.setParams(graph, paramDF)
-        self.landowners, self.ownerNums, self.nOwners = self.createLandownersList(graph)
+#        self.landowners, self.ownerNums, self.nOwners = self.createLandownersList(graph)
         self.DecisionProb = self.filterProbDict()
         self.LandOwnerNodeList = self.LandOwnerNodeList()
         self.createModel()
