@@ -29,12 +29,8 @@ class OptimizationModel():
         self.numberOfFinancialAsstValues = paramDF['numFinancialAssLevel']
         self.SecondStgValues = self.CalcAllSecondStageValues()
         self.setParams(graph, paramDF)
-<<<<<<< HEAD
-        self.landowners, self.ownerNums= self.createLandownersList(graph)
-=======
         self.landowners, self.ownerNums, self.nOwners = self.createLandownersList(graph)
         self.DecisionProb = self.filterProbDict()
->>>>>>> branch 'master' of https://github.com/hmedal/fireopt.git
         self.LandOwnerNodeList = self.LandOwnerNodeList()
         self.createModel()
         
@@ -47,12 +43,7 @@ class OptimizationModel():
         landowners = {}
         ownerNames = []
         ownerNums = []
-<<<<<<< HEAD
-        #test..
-=======
         nOwners = 0
->>>>>>> branch 'master' of https://github.com/hmedal/fireopt.git
-        
         for nodeNum,nodeAttr in list(graph.nodes(data=True)):
             if nodeAttr['owner'] not in ownerNames:
                 ownerNames.append(nodeAttr['owner'])
