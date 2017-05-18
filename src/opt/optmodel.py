@@ -45,7 +45,6 @@ class OptimizationModel():
         ownerNames = []
         ownerNums = []
         nOwners = 0
-        
         for nodeNum,nodeAttr in list(graph.nodes(data=True)):
             if nodeAttr['owner'] not in ownerNames:
                 ownerNames.append(nodeAttr['owner'])
@@ -147,7 +146,7 @@ class OptimizationModel():
         Data_file = "LogRegression.csv"
         Data_df = pd.read_csv(Data_file, delimiter=',', usecols=[2, 3])
         
-        nOwner = len(Data_df)
+        nOwner = (len(self.ownerNums))
         nDecision_state = 2
         #nLevel = 5
         
