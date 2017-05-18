@@ -29,7 +29,7 @@ class OptimizationModel():
         self.numberOfFinancialAsstValues = paramDF['numFinancialAssLevel']
         self.SecondStgValues = self.CalcAllSecondStageValues()
         self.setParams(graph, paramDF)
-        self.landowners[0], self.ownerNums= self.createLandownersList(graph)
+        self.landowners, self.ownerNums= self.createLandownersList(graph)
         self.LandOwnerNodeList = self.LandOwnerNodeList()
         self.createModel()
         
@@ -127,7 +127,7 @@ class OptimizationModel():
         Data_file = "LogRegression.csv"
         Data_df = pd.read_csv(Data_file, delimiter=',', usecols=[2, 3])
         
-        nOwner = len(Data_df)
+        nOwner = (len(self.ownerNums))
         nDecision_state = 2
         #nLevel = 5
         
