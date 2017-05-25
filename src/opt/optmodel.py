@@ -134,10 +134,11 @@ class OptimizationModel():
         The output is the probability of a landowner to accept a cost-share plan for a given amount of financial assistance
     '''
     def CreateScenarioDecisionStates(self):
-        States = np.array([0, 1.0])
+        l = [bin(x)[2:].rjust(len(self.ownerNums), '0') for x in range(2**len(self.ownerNums))]
+        #States = np.array([0, 1.0])
         Decision_states = {}
         for s in range(self.nScenario):
-            Decision_states[s] = np.random.choice(States, len(self.ownerNums))
+            Decision_states[s] = [int(l[i][j]) for j in range(len(self.ownerNums))]
         
         return Decision_states
         
@@ -175,7 +176,7 @@ class OptimizationModel():
             for i in range(len(self.ownerNums)):
                 for j in range(nDecision_state):
                     ProbDict[s, i, j, train_Feature[i,0]] = ProbDecisionState[i, j, train_Feature[i,0]]
-        
+        '''
         for s in range(self.nScenario):
             for i in range(len(self.ownerNums)):
                 for k in range(self.numberOfFinancialAsstValues):
@@ -183,6 +184,7 @@ class OptimizationModel():
                     if self.Decision_states[s][i]==0:
                         l=1
                     ProbDict[s, i, l, k]= 0
+        '''            
         
         return ProbDict
     
