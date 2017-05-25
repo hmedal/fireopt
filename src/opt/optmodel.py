@@ -24,14 +24,23 @@ class OptimizationModel():
         self.nScenario = paramDF['numScenarios']
         self.C_k = paramDF['Cost']
         self.Budget_param = paramDF['budget']
-        self.Decision_states = self.CreateScenarioDecisionStates()
-        self.Prob = self.ProbDecisionState(paramDF)
         self.numberOfFinancialAsstValues = paramDF['numFinancialAssLevel']
-        self.SecondStgValues = self.CalcAllSecondStageValues()
-        self.setParams(graph, paramDF)
         self.landowners, self.ownerNums, self.nOwners = self.createLandownersList(graph)
-        self.DecisionProb = self.filterProbDict()
         self.LandOwnerNodeList = self.LandOwnerNodeList()
+        print "line 29"
+        self.Decision_states = self.CreateScenarioDecisionStates()
+        print "line 31"
+        self.Prob = self.ProbDecisionState(paramDF)
+        print "line 33"
+#        self.numberOfFinancialAsstValues = paramDF['numFinancialAssLevel']
+        self.SecondStgValues = self.CalcAllSecondStageValues()
+        print "line 36"
+        self.setParams(graph, paramDF)
+        print "line 38"
+#        self.landowners, self.ownerNums, self.nOwners = self.createLandownersList(graph)
+        self.DecisionProb = self.filterProbDict()
+        print "line 41"
+#        self.LandOwnerNodeList = self.LandOwnerNodeList()
         self.createModel()
         
     def setParams(self, graph, paramDF):
@@ -59,13 +68,14 @@ class OptimizationModel():
 
     def filterProbDict(self):
         DecisionProb = {}
-        
+        print self.Prob
         for n in range(self.nScenario):
             for k in range(self.numberOfFinancialAsstValues):
                 for j in range(self.nOwners):
                     for l in (0,1):
-                        if self.ProbDict[n,j,l,k] > 0:
-                            DecisionProb[n,j,k] = self.ProbDict[n,j,l,k]
+                        print "[%s,%s,%s,%s]" % (n,j,l,k)
+                        if self.Prob[n,j,l,k] != 0:
+                            DecisionProb[n,j,k] = self.Prob[n,j,l,k]
                             
         return DecisionProb
 
@@ -143,7 +153,7 @@ class OptimizationModel():
         return Decision_states
         
     def ProbDecisionState(self, paramDF):
-        Data_file = "LogRegression.csv"
+        Data_file = "../../data/LogRegression.csv"
         Data_df = pd.read_csv(Data_file, delimiter=',', usecols=[2, 3])
         
         nOwner = (len(self.ownerNums))
@@ -195,7 +205,7 @@ class OptimizationModel():
          
     ''' 
     def LandOwnerNodeList(self):
-        Graph= nx.read_gml('SantaFe.gml')
+        Graph = nx.read_gml('../../data/SantaFe.gml')
         Landowners_node_lst = {}
         for i in range(len(self.ownerNums)):
             Landowners_node_lst[i] = [] 
@@ -205,8 +215,10 @@ class OptimizationModel():
             for i in range(len(self.ownerNums)): 
                 if int(node[1]['owner']) == i+1: ##checking the owner of a node in data.gml is the owner in the list
                     Landowners_node_lst[i].append(node[0]) 
+                    
+        return Landowners_node_lst
     
-    def spread(self, ignition_points, Land):
+    def spread(self, ignition_points, Land, SPLength, fire_duration):
 
         SumBurnt = 0
         Burnt_WUI = 0
@@ -248,8 +260,8 @@ class OptimizationModel():
                 if Land.node[nod]['WUI'] == 1:
                     Burnt_WUI += 1
     
-        for i in range(0,len(igpoints)):
-            Land.node[igpoints[i]]['color'] = 'b'
+        for i in range(0,len(ignition_points)):
+            Land.node[ignition_points[i]]['color'] = 'b'
     
         return (SumBurnt, Burnt_WUI)
     
@@ -379,8 +391,9 @@ class OptimizationModel():
                 nodes.append(self.Generate_Random_igpoint(Num_igpoints))
                 igpoints = nodes[Number_Sub_scenario_counted][:Num_igpoints]
                 Number_Sub_scenario_counted += 1
-                Burnt.append(self.spread(igpoints, Land))
+                Burnt.append(self.spread(igpoints, Land, SPLength, fire_duration))
                 (AveBurnt, SDBurnt) = self.SDCalculate(Burnt,Number_Sub_scenario_counted,0)
+                print "Scenario %s_%s" % (s, Number_Sub_scenario_counted)
             Total_Burnt = sum([i[0] for i in Burnt])
             (AveWUIBurnt,STDWUIBurnt) = self.SDCalculate(Burnt,Number_Sub_scenario_counted,1)
             secondStageValues[s] = Total_Burnt    

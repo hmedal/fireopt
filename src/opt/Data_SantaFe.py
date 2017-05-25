@@ -26,7 +26,7 @@ ProbDuration = [1]
 Duration = [24*60]
 
 ValueAtRisk = []
-with open('Cell Value.dat', 'r') as g:
+with open('../../data/Cell Value.dat', 'r') as g:
     Value_Data = g.readlines()
 
     for vline in Value_Data:
@@ -121,7 +121,7 @@ ROS = [ [0 for i in range(N_Nodes)] for i in range(N_Nodes)]
 
 Cell_Direction_Fire = []
 
-with open('Direction Data Santa Fe.dat', 'r') as f:
+with open('../../data/Direction Data Santa Fe.dat', 'r') as f:
     Direction_Data = f.readlines()
     
     for line in Direction_Data:
@@ -131,7 +131,7 @@ with open('Direction Data Santa Fe.dat', 'r') as f:
             Cell_Direction_Fire.append(float(row[i]))
 
 bEllipse = []
-with open('b Data Santa Fe.dat', 'r') as ff:
+with open('../../data/b Data Santa Fe.dat', 'r') as ff:
     bData = ff.readlines()
     
     for line in bData:
@@ -141,7 +141,7 @@ with open('b Data Santa Fe.dat', 'r') as ff:
             bEllipse.append(float(row[i]))
 
 cEllipse = []
-with open('c Data Santa Fe.dat', 'r') as fff:
+with open('../../data/c Data Santa Fe.dat', 'r') as fff:
     cData = fff.readlines()
     
     for line in cData:
