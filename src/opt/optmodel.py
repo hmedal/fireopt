@@ -73,10 +73,12 @@ class OptimizationModel():
             for k in range(self.numberOfFinancialAsstValues):
                 for j in range(self.nOwners):
                     for l in (0,1):
-                        print "[%s,%s,%s,%s]" % (n,j,l,k)
-                        if self.Prob[n,j,l,k] != 0:
-                            DecisionProb[n,j,k] = self.Prob[n,j,l,k]
-                            
+                        if (n,j,l,k) in self.Prob:
+                            print "[%s,%s,%s,%s]" % (n,j,l,k)
+                            if self.Prob[n,j,l,k] != 0:
+                                print "This worked."
+                                DecisionProb[n,j,k] = self.Prob[n,j,l,k]
+        print DecisionProb                    
         return DecisionProb
 
     def createModel(self):
@@ -96,6 +98,11 @@ class OptimizationModel():
                 self.y[j, k] = m.addVar(vtype=GRB.BINARY, name="y_j"+str(j)+"_k"+str(k))
         
         m.update()
+        
+#        for n in (n,j,k) in self.DecisionProb:
+#            m.addConstr(quicksum(w[0,k,n] for k in (n,j,k) in self.DecisionProb) == 
+#                        self.SecondStgValues[n]*quicksum(self.DecisionProb[n,0,k]*self.y[0, k]
+#                        for k in (n,j,k) in self.DecisionProb), name = "6a_n"+str(n))
         
         #6a updated
         for n in range(self.nScenario):
