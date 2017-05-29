@@ -75,7 +75,7 @@ class OptimizationModel():
                     for l in (0,1):
                         if (n,j,l,k) in self.Prob:
                             print "[%s,%s,%s,%s]" % (n,j,l,k)
-                            if self.Prob[n,j,l,k] != 0:
+                            if self.Prob[n,j,l,k] > 0.0000001:
                                 print "This worked."
                                 DecisionProb[n,j,k] = self.Prob[n,j,l,k]
         print DecisionProb                    
