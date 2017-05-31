@@ -154,7 +154,7 @@ class OptimizationModel():
         
     def ProbDecisionState(self, paramDF):
         Data_file = "../../data/LogRegression.csv"
-        Data_df = pd.read_csv(Data_file, delimiter=',', usecols=[2, 3])
+        Data_df = pd.read_csv(Data_file, delimiter=',', usecols=[0, 1, 2, 3])
         
         nOwner = (len(self.ownerNums))
         nDecision_state = 2
@@ -180,22 +180,23 @@ class OptimizationModel():
         for i in range(nOwner):
             for j in range(nDecision_state):
                 ProbDecisionState[i, j, train_Feature[i,0]] = State_prob[i][j]
-        
-        ProbDict = {}
+                
         for s in range(self.nScenario):
             for i in range(len(self.ownerNums)):
                 for j in range(nDecision_state):
-                    ProbDict[s, i, j, train_Feature[i,0]] = ProbDecisionState[i, j, train_Feature[i,0]]
-        '''
+                    for k in range(self.numberOfFinancialAsstValues):
+                        owner = Data_df[Data_df['Level'] == k].iloc[0]['Owner']
+                        ProbDecisionState[s, i, j, k] = State_prob[owner,j]
+        
+        ProbDict = {}
         for s in range(self.nScenario):
             for i in range(len(self.ownerNums)):
                 for k in range(self.numberOfFinancialAsstValues):
                     l= 0
                     if self.Decision_states[s][i]==0:
                         l=1
-                    ProbDict[s, i, l, k]= 0
-        '''            
-        
+                    ProbDict[s, i, l, k]= -99
+                   
         return ProbDict
     
     '''
