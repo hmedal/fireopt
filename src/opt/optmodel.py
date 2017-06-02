@@ -113,10 +113,17 @@ class OptimizationModel():
         #6b updated
         for r in range(1,self.nOwners):
             for n in range(self.nScenario):
-                m.addConstr(quicksum(w[r-1,k,n] for k in range(self.numberOfFinancialAsstValues)) ==
-                            quicksum(w[r,k,n]*(1/self.DecisionProb[n,r,k])
-                            for k in range(self.numberOfFinancialAsstValues)),
-                            name = "6b_j"+str(r)+"_n"+str(n))
+                sum1 = quicksum(w[r-1,k,n] for k in range(self.numberOfFinancialAsstValues))
+                sum2 = 0
+                for k in range(self.numberOfFinancialAsstValues):
+                    if self.DecisionProb[n,r,k] < 0.00001:
+                        raise Exception(" < 0.00001 for " + str(self.DecisionProb[n,r,k]))
+                    sum2 += w[r,k,n]*(1/self.DecisionProb[n,r,k])
+                #m.addConstr(quicksum(w[r-1,k,n] for k in range(self.numberOfFinancialAsstValues)) ==
+                #            quicksum(w[r,k,n]*(1/self.DecisionProb[n,r,k])
+                #            for k in range(self.numberOfFinancialAsstValues)),
+                #            name = "6b_j"+str(r)+"_n"+str(n))
+                m.addConstr(sum1 == sum2, name="6b_j" + str(r) + "_n" + str(n))
         
         #6c updated
         for k in range(self.numberOfFinancialAsstValues):
