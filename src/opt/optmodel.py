@@ -183,19 +183,15 @@ class OptimizationModel():
         print State_prob
         
         # Put the result into a dictionary
-        ProbDecisionState = {}
-        for i in range(nOwner):
-            for j in range(nDecision_state):
-                ProbDecisionState[i, j, train_Feature[i,0]] = State_prob[i][j]
-                
+        ProbDict = {}
+        
         for s in range(self.nScenario):
             for i in range(len(self.ownerNums)):
                 for j in range(nDecision_state):
                     for k in range(self.numberOfFinancialAsstValues):
                         owner = Data_df[Data_df['Level'] == k].iloc[0]['Owner']
-                        ProbDecisionState[s, i, j, k] = State_prob[owner,j]
+                        ProbDict[s, i, j, k] = State_prob[owner,j]
         
-        ProbDict = {}
         for s in range(self.nScenario):
             for i in range(len(self.ownerNums)):
                 for k in range(self.numberOfFinancialAsstValues):
