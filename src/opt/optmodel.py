@@ -41,7 +41,7 @@ class OptimizationModel():
         self.DecisionProb = self.filterProbDict()
         print "line 41"
 #        self.LandOwnerNodeList = self.LandOwnerNodeList()
-        self.createModel()
+        self.m = self.createModel()
         
     def setParams(self, graph, paramDF):
         self.graph = graph
@@ -80,7 +80,26 @@ class OptimizationModel():
                                 DecisionProb[n,j,k] = self.Prob[n,j,l,k]
         print DecisionProb                    
         return DecisionProb
+    '''
 
+    def lDecState(self, r, n):  
+        l = 0
+        
+        if self.Prob(n, r, l, 0) == -99:
+            l = 1
+        
+        return l
+    
+    def kLevel(self, r, n):
+        
+        kLevel = []
+        
+        for k in self.numberOfFinancialAsstValues:
+            if self.Prob(n, r, lDecState(r,n),k) > 0.00001:
+                kLevel.append(k)
+        
+        return kLevel
+    '''
     def createModel(self):
         w = {}
         self.y = {}
@@ -118,7 +137,8 @@ class OptimizationModel():
                 for k in range(self.numberOfFinancialAsstValues):
                     if self.DecisionProb[n,r,k] < 0.00001:
                         print(" < 0.00001 for " + str(self.DecisionProb[n,r,k]))
-                    sum2 += w[r,k,n]*(1/self.DecisionProb[n,r,k])
+                    if self.DecisionProb[n,r,k] > 0.00001:
+                        sum2 += w[r,k,n]*(1/self.DecisionProb[n,r,k])
                 #m.addConstr(quicksum(w[r-1,k,n] for k in range(self.numberOfFinancialAsstValues)) ==
                 #            quicksum(w[r,k,n]*(1/self.DecisionProb[n,r,k])
                 #            for k in range(self.numberOfFinancialAsstValues)),
@@ -418,5 +438,5 @@ class OptimizationModel():
 
     def writeResults(self, file):
         
-        if m.status == GRB.Status.OPTIMAL:
+        if self.m.status == GRB.Status.OPTIMAL:
             self.write("%s.sol" % file)

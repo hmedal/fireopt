@@ -16,6 +16,7 @@ if __name__ == "__main__":
     paramsDict = json.loads(open(paramsFile).read())
 #    optModel = opt.OptimizationModel(graph, paramsDict, None, None)
     optModel = opt.OptimizationModel(graph, paramsDict)
-    optModel.optimize()
+#    optModel.optimize()
     print "We've made it this far!"
     optModel.writeResults('results.txt')
+    print "The file has been created."
