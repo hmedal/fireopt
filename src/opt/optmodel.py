@@ -439,4 +439,7 @@ class OptimizationModel():
     def writeResults(self, file):
         
         if self.m.status == GRB.Status.OPTIMAL:
-            self.write("%s.sol" % file)
+            self.m.write("%s.sol" % file)
+            print ('\nOBJECTIVE VALUE: %g' % self.m.objVal)
+            for v in self.m.getVars():
+                print('%s %g' % (v.varName, v.x))
