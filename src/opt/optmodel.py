@@ -43,6 +43,14 @@ class OptimizationModel():
 #        self.LandOwnerNodeList = self.LandOwnerNodeList()
         self.m = self.createModel()
         
+        for n in range(self.nScenario):
+            print "Scenario %s second stage value: %s" % (n, self.SecondStgValues[n])
+            for r in range(self.nOwners):
+                print "In scenario %s, landowner %s's decision is %s" % (n, r, self.lDecState(n,r))
+                for l in (0,1):
+                    for k in range(self.numberOfFinancialAsstValues):
+                        print "[%s,%s,%s,%s] = %s" % (n,r,l,k,self.Prob[n,r,l,k])
+        
     def setParams(self, graph, paramDF):
         self.graph = graph
         self.paramDF = paramDF
@@ -80,16 +88,16 @@ class OptimizationModel():
                                 DecisionProb[n,j,k] = self.Prob[n,j,l,k]
         print DecisionProb                    
         return DecisionProb
-    '''
+    
 
-    def lDecState(self, r, n):  
+    def lDecState(self, n, r):  
         l = 0
         
-        if self.Prob(n, r, l, 0) == -99:
+        if self.Prob[n, r, l, 0] == -99:
             l = 1
         
         return l
-    
+    ''' 
     def kLevel(self, r, n):
         
         kLevel = []
@@ -440,6 +448,7 @@ class OptimizationModel():
         
         if self.m.status == GRB.Status.OPTIMAL:
             self.m.write("%s.sol" % file)
+            self.m.write("%s.lp" % file)
             print ('\nOBJECTIVE VALUE: %g' % self.m.objVal)
             for v in self.m.getVars():
                 print('%s %g' % (v.varName, v.x))
