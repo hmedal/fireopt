@@ -140,11 +140,11 @@ class OptimizationModel():
         #6b updated
         for r in range(1,self.nOwners):
             for n in range(self.nScenario):
-                sum1 = quicksum(w[r-1,k,n] for k in range(self.numberOfFinancialAsstValues))
+                sum1 = 0
                 sum2 = 0
                 for k in range(self.numberOfFinancialAsstValues):
-                    if self.DecisionProb[n,r,k] < 0.00001:
-                        print(" < 0.00001 for " + str(self.DecisionProb[n,r,k]))
+                    if self.DecisionProb[n,r-1,k] > 0.00001:
+                        sum1 += w[r-1,k,n]
                     if self.DecisionProb[n,r,k] > 0.00001:
                         sum2 += w[r,k,n]*(1/self.DecisionProb[n,r,k])
                 #m.addConstr(quicksum(w[r-1,k,n] for k in range(self.numberOfFinancialAsstValues)) ==
