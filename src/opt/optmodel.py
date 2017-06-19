@@ -432,11 +432,10 @@ class OptimizationModel():
                 Number_Sub_scenario_counted += 1
                 Burnt.append(self.spread(igpoints, Land, SPLength, fire_duration))
                 (AveBurnt, SDBurnt) = self.SDCalculate(Burnt,Number_Sub_scenario_counted,0)
-                print "Scenario %s_%s" % (s, Number_Sub_scenario_counted)
             Total_Burnt = sum([i[0] for i in Burnt])
             (AveWUIBurnt,STDWUIBurnt) = self.SDCalculate(Burnt,Number_Sub_scenario_counted,1)
             secondStageValues[s] = Total_Burnt    
-              
+            print "Scenario %s" % (s)
         # fill in here
         return secondStageValues
 
