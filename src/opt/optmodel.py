@@ -190,7 +190,7 @@ class OptimizationModel():
         #States = np.array([0, 1.0])
         Decision_states = {}
         for s in range(self.nScenario):
-            Decision_states[s] = [int(l[i][j]) for j in range(len(self.ownerNums))]
+            Decision_states[s] = [int(l[s][j]) for j in range(len(self.ownerNums))]
         
         return Decision_states
         
