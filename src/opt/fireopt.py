@@ -18,5 +18,5 @@ if __name__ == "__main__":
     optModel = opt.OptimizationModel(graph, paramsDict)
 #    optModel.optimize()
     print "We've made it this far!"
-    optModel.writeResults('results12')
+    optModel.writeResults('results13')
     print "The file has been created."

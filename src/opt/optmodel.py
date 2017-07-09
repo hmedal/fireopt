@@ -42,7 +42,7 @@ class OptimizationModel():
         print "line 41"
 #        self.LandOwnerNodeList = self.LandOwnerNodeList()
         self.m = self.createModel()
-        
+        '''
         for n in range(self.nScenario):
             print "Scenario %s second stage value: %s" % (n, self.SecondStgValues[n])
             for r in range(self.nOwners):
@@ -50,7 +50,7 @@ class OptimizationModel():
                 for l in (0,1):
                     for k in range(self.numberOfFinancialAsstValues):
                         print "[%s,%s,%s,%s] = %s" % (n,r,l,k,self.Prob[n,r,l,k])
-        
+        '''
     def setParams(self, graph, paramDF):
         self.graph = graph
         self.paramDF = paramDF
