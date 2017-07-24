@@ -8,7 +8,7 @@ def readGraph(graphFile):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Read filenames.')
-    parser.add_argument('-g', '--graph', help='the graph file', default = "../../data/SantaFe.gml")
+    parser.add_argument('-g', '--graph', help='the graph file', default = "../../data/SantaFe with 3 landowners.gml")
     parser.add_argument('-p', '--params', help='the parameters file', default = "../../params/paramsFile.json")
     args = parser.parse_args()
     paramsFile = args.params
@@ -18,5 +18,5 @@ if __name__ == "__main__":
     optModel = opt.OptimizationModel(graph, paramsDict)
 #    optModel.optimize()
     print "We've made it this far!"
-    optModel.writeResults('results13')
+    optModel.writeResults('modified Santa Fe results 2')
     print "The file has been created."

@@ -1,6 +1,6 @@
 {
-"budget" : 12000,
-  "numScenarios" : 1024,
+"budget" : 3700,
+  "numScenarios" : 8,
   "Cost" : [0, 500, 1000, 1200, 1500],
   "numFinancialAssLevel" : 5
   

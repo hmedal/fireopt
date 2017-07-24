@@ -42,7 +42,7 @@ class OptimizationModel():
         print "line 41"
 #        self.LandOwnerNodeList = self.LandOwnerNodeList()
         self.m = self.createModel()
-        '''
+        print self.Decision_states
         for n in range(self.nScenario):
             print "Scenario %s second stage value: %s" % (n, self.SecondStgValues[n])
             for r in range(self.nOwners):
@@ -50,7 +50,7 @@ class OptimizationModel():
                 for l in (0,1):
                     for k in range(self.numberOfFinancialAsstValues):
                         print "[%s,%s,%s,%s] = %s" % (n,r,l,k,self.Prob[n,r,l,k])
-        '''
+        
     def setParams(self, graph, paramDF):
         self.graph = graph
         self.paramDF = paramDF
@@ -140,18 +140,18 @@ class OptimizationModel():
         #6b updated
         for r in range(1,self.nOwners):
             for n in range(self.nScenario):
-                sum1 = 0
-                sum2 = 0
-                for k in range(self.numberOfFinancialAsstValues):
-                    if self.DecisionProb[n,r-1,k] > 0.00001:
-                        sum1 += w[r-1,k,n]
-                    if self.DecisionProb[n,r,k] > 0.00001:
-                        sum2 += w[r,k,n]*(1/self.DecisionProb[n,r,k])
-                #m.addConstr(quicksum(w[r-1,k,n] for k in range(self.numberOfFinancialAsstValues)) ==
-                #            quicksum(w[r,k,n]*(1/self.DecisionProb[n,r,k])
-                #            for k in range(self.numberOfFinancialAsstValues)),
-                #            name = "6b_j"+str(r)+"_n"+str(n))
-                m.addConstr(sum1 == sum2, name="6b_j" + str(r) + "_n" + str(n))
+                #sum1 = 0
+                #sum2 = 0
+                #for k in range(self.numberOfFinancialAsstValues):
+                #    if self.DecisionProb[n,r-1,k] > 0.00001:
+                #        sum1 += w[r-1,k,n]
+                #    if self.DecisionProb[n,r,k] > 0.00001:
+                #        sum2 += w[r,k,n]*(1/self.DecisionProb[n,r,k])
+                m.addConstr(quicksum(w[r-1,k,n] for k in range(self.numberOfFinancialAsstValues)) ==
+                            quicksum(w[r,k,n]*(1/max(self.DecisionProb[n,r,k],0.00001))
+                            for k in range(self.numberOfFinancialAsstValues)),
+                            name = "6b_j"+str(r)+"_n"+str(n))
+                #m.addConstr(sum1 == sum2, name="6b_j" + str(r) + "_n" + str(n))
         
         #6c updated
         for k in range(self.numberOfFinancialAsstValues):
