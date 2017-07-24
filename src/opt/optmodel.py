@@ -196,6 +196,8 @@ class OptimizationModel():
         
     def ProbDecisionState(self, paramDF):
         Data_file = "../../data/LogRegression.csv"
+        #Data_file = "../../data/LogRegression_3.csv"
+        
         Data_df = pd.read_csv(Data_file, delimiter=',', usecols=[0, 1, 2, 3])
         
         nOwner = (len(self.ownerNums))
