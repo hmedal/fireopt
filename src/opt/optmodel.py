@@ -30,6 +30,7 @@ class OptimizationModel():
         print "line 29"
         self.Decision_states = self.CreateScenarioDecisionStates()
         print "line 31"
+        self.LogitRegData = self.CreateLogRegDataFile()
         self.Prob = self.ProbDecisionState(paramDF)
         print "line 33"
 #        self.numberOfFinancialAsstValues = paramDF['numFinancialAssLevel']
@@ -193,12 +194,34 @@ class OptimizationModel():
             Decision_states[s] = [int(l[s][j]) for j in range(len(self.ownerNums))]
         
         return Decision_states
-        
+    
+    def CreateLogRegDataFile(self):  ##newly added method
+
+        Financial_level_data = "../../data/AsstanceLevel_probability.csv"
+        Financial_level_df = pd.read_csv(Financial_level_data, delimiter=',', usecols=[0, 1, 2, 3])
+        nRow_LogRegression = len(Financial_level_df) * 10
+        columns = ['OwnerIdx', 'Amount', 'Level', 'Decision']
+        LogRegression_df = pd.DataFrame(index=range(0, nRow_LogRegression), columns=columns)
+
+        for k in range(self.numberOfFinancialAsstValues):
+            for i in range(10):
+                LogRegression_df['OwnerIdx'][k * 10 + i] = k * 10 + i
+                LogRegression_df['Amount'][k * 10 + i] = random.uniform(Financial_level_df['Amount_LL'][k],
+                                                                        Financial_level_df['Amount_UL'][k])
+                LogRegression_df['Level'][k * 10 + i] = k
+                LogRegression_df['Decision'][k * 10 + i] = np.random.choice(np.arange(0, 2),
+                                                                            p=[1 - Financial_level_df['Probability'][k],
+                                                                               Financial_level_df['Probability'][k]])
+
+        return LogRegression_df
+    
+    
     def ProbDecisionState(self, paramDF):
-        Data_file = "../../data/LogRegression.csv"
+        #Data_file = "../../data/LogRegression.csv"
         #Data_file = "../../data/LogRegression_3.csv"
         
-        Data_df = pd.read_csv(Data_file, delimiter=',', usecols=[0, 1, 2, 3])
+        Data_df = self.LogitRegData
+        #Data_df = pd.read_csv(Data_file, delimiter=',', usecols=[0, 1, 2, 3])
         
         nOwner = (len(self.ownerNums))
         nDecision_state = 2
