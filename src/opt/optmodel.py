@@ -428,7 +428,7 @@ class OptimizationModel():
                 if self.Decision_states[s][Lowner]==1:
                     for r in range(N_Nodes):
                         for q in Neighbor[r]:
-                            if r or q in self.LandOwnerNodeList[Lowner]:
+                            if q in self.LandOwnerNodeList[Lowner]:
                                 t[q][r]= 100000*60
             
             '#  Rebuilding the graph with time attribute'
@@ -459,7 +459,7 @@ class OptimizationModel():
                 (AveBurnt, SDBurnt) = self.SDCalculate(Burnt,Number_Sub_scenario_counted,0)
             Total_Burnt = sum([i[0] for i in Burnt])
             (AveWUIBurnt,STDWUIBurnt) = self.SDCalculate(Burnt,Number_Sub_scenario_counted,1)
-            secondStageValues[s] = Total_Burnt    
+            secondStageValues[s] = AveBurnt    
             print "Scenario %s" % (s)
         # fill in here
         return secondStageValues
