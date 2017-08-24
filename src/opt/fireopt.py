@@ -2,6 +2,9 @@ import argparse
 import networkx as nx
 import optmodel as opt
 import json
+import timeit
+
+start = timeit.default_timer()
 
 def readGraph(graphFile):
     return nx.read_gml(graphFile)
@@ -18,5 +21,9 @@ if __name__ == "__main__":
     optModel = opt.OptimizationModel(graph, paramsDict)
 #    optModel.optimize()
     print "We've made it this far!"
-    optModel.writeResults('modified Santa Fe results 3')
+    optModel.writeResults('modified Santa Fe results 4')
     print "The file has been created."
+
+stop = timeit.default_timer()
+
+print "Total run time: %s" % (stop - start)

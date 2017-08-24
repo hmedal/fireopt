@@ -28,6 +28,7 @@ class OptimizationModel():
         self.numberOfFinancialAsstValues = paramDF['numFinancialAssLevel']
         self.landowners, self.ownerNums, self.nOwners = self.createLandownersList(graph)
         print "ownerNums", self.ownerNums
+        self.setParams(graph, paramDF)
         self.LandOwnerNodeList = self.LandOwnerNodeList()
         print "line 29"
         self.Decision_states = self.CreateScenarioDecisionStates()
@@ -38,7 +39,6 @@ class OptimizationModel():
 #        self.numberOfFinancialAsstValues = paramDF['numFinancialAssLevel']
         self.SecondStgValues = self.CalcAllSecondStageValues()
         print "line 36"
-        self.setParams(graph, paramDF)
         print "line 38"
 #        self.landowners, self.ownerNums, self.nOwners = self.createLandownersList(graph)
         self.DecisionProb = self.filterProbDict()
@@ -272,12 +272,12 @@ class OptimizationModel():
 
     '''
     def LandOwnerNodeList(self):
-        Graph = nx.read_gml('../../data/SantaFe with 3 landowners.gml')
+        #Graph = nx.read_gml('../../data/SantaFe with 3 landowners.gml')
         Landowners_node_lst = {}
         for i in range(len(self.ownerNums)):
             Landowners_node_lst[i] = []
 
-        for node in Graph.nodes(data=True):
+        for node in self.graph.nodes(data=True):
         #print "node", node[0]
             for i in range(len(self.ownerNums)):
                 if int(node[1]['owner']) == i+1: ##checking the owner of a node in data.gml is the owner in the list
