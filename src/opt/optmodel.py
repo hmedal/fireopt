@@ -202,7 +202,7 @@ class OptimizationModel():
         Financial_level_data = "../../data/AsstanceLevel_probability.csv"
         Financial_level_df = pd.read_csv(Financial_level_data, delimiter=',', usecols=[0, 1, 2, 3])
         nRow_LogRegression = len(Financial_level_df) * 10
-        columns = ['OwnerIdx', 'Amount', 'Level', 'Decision']
+        columns = ['OwnerIdx', 'Amount', 'Decision']
         LogRegression_df = pd.DataFrame(index=range(0, nRow_LogRegression), columns=columns)
 
         for k in range(self.numberOfFinancialAsstValues):
@@ -210,7 +210,7 @@ class OptimizationModel():
                 LogRegression_df['OwnerIdx'][k * 10 + i] = k * 10 + i
                 LogRegression_df['Amount'][k * 10 + i] = random.uniform(Financial_level_df['Amount_LL'][k],
                                                                         Financial_level_df['Amount_UL'][k])
-                LogRegression_df['Level'][k * 10 + i] = k
+
                 LogRegression_df['Decision'][k * 10 + i] = np.random.choice(np.arange(0, 2),
                                                                             p=[1 - Financial_level_df['Probability'][k],
                                                                                Financial_level_df['Probability'][k]])
@@ -229,7 +229,7 @@ class OptimizationModel():
         nDecision_state = 2
         #nLevel = 5
         #print "Data_df", Data_df
-        train_Feature = Data_df['Level'].as_matrix().reshape(-1, 1)  # we only take the first two features.
+        train_Feature = Data_df['Amount'].as_matrix().reshape(-1, 1)  # we only take the first two features.
         train_Target = Data_df['Decision'].as_matrix()
 
 
