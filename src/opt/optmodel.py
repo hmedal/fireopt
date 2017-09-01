@@ -280,7 +280,7 @@ class OptimizationModel():
 
         for s in range(self.nScenario):
             for i in range(len(self.ownerNums)):
-                for j in range(self.Decision_states):
+                for j in range(nDecision_state):
                     for k in range(self.numberOfFinancialAsstValues):
                         ProbDict[s, i, j, k] = Estimated_prob[k, j]
 
