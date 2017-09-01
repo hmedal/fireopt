@@ -23,9 +23,10 @@ class OptimizationModel():
     '''
     def __init__(self, graph, paramDF):
         self.nScenario = paramDF['numScenarios']
-        self.C_k = paramDF['Cost']
+        #self.C_k = paramDF['Cost']
         self.Budget_param = paramDF['budget']
         self.numberOfFinancialAsstValues = paramDF['numFinancialAssLevel']
+        self.numberOfRowforEachlevel = 10
         self.landowners, self.ownerNums, self.nOwners = self.createLandownersList(graph)
         print "ownerNums", self.ownerNums
         self.setParams(graph, paramDF)
@@ -34,7 +35,7 @@ class OptimizationModel():
         self.Decision_states = self.CreateScenarioDecisionStates()
         print "line 31"
         self.LogitRegData = self.CreateLogRegDataFile()
-        self.Prob = self.ProbDecisionState(paramDF)
+        self.Prob, self.C_k = self.ProbDecisionState(paramDF)
         print "line 33"
 #        self.numberOfFinancialAsstValues = paramDF['numFinancialAssLevel']
         self.SecondStgValues = self.CalcAllSecondStageValues()
@@ -200,20 +201,26 @@ class OptimizationModel():
     def CreateLogRegDataFile(self):  ##newly added method
 
         Financial_level_data = "../../data/AsstanceLevel_probability.csv"
-        Financial_level_df = pd.read_csv(Financial_level_data, delimiter=',', usecols=[0, 1, 2, 3])
-        nRow_LogRegression = len(Financial_level_df) * 10
+        Financial_level_df = pd.read_csv(Financial_level_data, delimiter=',', usecols=[0, 1, 2])
+        nRow_LogRegression = len(Financial_level_df) * self.numberOfRowforEachlevel
         columns = ['OwnerIdx', 'Amount', 'Decision']
         LogRegression_df = pd.DataFrame(index=range(0, nRow_LogRegression), columns=columns)
 
-        for k in range(self.numberOfFinancialAsstValues):
-            for i in range(10):
-                LogRegression_df['OwnerIdx'][k * 10 + i] = k * 10 + i
-                LogRegression_df['Amount'][k * 10 + i] = random.uniform(Financial_level_df['Amount_LL'][k],
-                                                                        Financial_level_df['Amount_UL'][k])
-
-                LogRegression_df['Decision'][k * 10 + i] = np.random.choice(np.arange(0, 2),
-                                                                            p=[1 - Financial_level_df['Probability'][k],
-                                                                               Financial_level_df['Probability'][k]])
+        for row in range(len(Financial_level_df)):
+            for i in range(self.numberOfRowforEachlevel):
+                LogRegression_df['OwnerIdx'][row * self.numberOfRowforEachlevel + i] = row * self.numberOfRowforEachlevel + i
+                LogRegression_df['Amount'][row * self.numberOfRowforEachlevel + i] = random.uniform(
+                    Financial_level_df['Amount_LL'][row],
+                    Financial_level_df['Amount_UL'][row])
+                # LogRegression_df['Level'][k * numberOfRowforEachlevel + i] = k
+                LogRegression_df['Decision'][row * self.numberOfRowforEachlevel + i] = np.random.choice(np.arange(0, 2),
+                                                                                                   p=[1 -
+                                                                                                      Financial_level_df[
+                                                                                                          'Probability'][
+                                                                                                          row],
+                                                                                                      Financial_level_df[
+                                                                                                          'Probability'][
+                                                                                                          row]])
 
         return LogRegression_df
 
@@ -241,19 +248,41 @@ class OptimizationModel():
         logreg.fit(train_Feature, train_Target.astype(str))
 
         #np.set_printoptions(threshold=1000000)
+        minimum_amount_offered = Data_df['Amount'].min()
+        maximum_amount_offered = Data_df['Amount'].max()
 
-        State_prob = logreg.predict_proba(train_Feature)
-        print State_prob
+        print "minimum_amount_offered", minimum_amount_offered
+        print "maximum_amount_offered", maximum_amount_offered
+
+        Amount_increment = (maximum_amount_offered - minimum_amount_offered) / (self.numberOfFinancialAsstValues - 1)
+
+        DiscretizedFinancialAmountValues = []  ##Contains the financial amount (money) values that defines the upper and lower bounds of the financial assistance levels.
+        DiscretizedFinancialAmountValues.append(minimum_amount_offered)
+        for i in range(self.numberOfFinancialAsstValues - 1):
+            DiscretizedFinancialAmountValues.append(DiscretizedFinancialAmountValues[
+                                                        -1] + Amount_increment)  ##Add the amount increment to the last element added to the list to construct the bound of the financial assistance levels.
+
+        CostOfFinancialAssistanceLevels = []  ##Contains the costs regarding the financial assistance values. They are the midpoints of the upper and lower bounds of the corresponding financial assistance values.
+        CostOfFinancialAssistanceLevels.append(
+            DiscretizedFinancialAmountValues[0])  # the first element is inserted manually
+        for j in range(1, len(DiscretizedFinancialAmountValues)):
+            CostOfFinancialAssistanceLevels.append(
+                (DiscretizedFinancialAmountValues[j - 1] + DiscretizedFinancialAmountValues[j]) / 2.0)
+
+        InputArrayForProbEstimation = np.array(CostOfFinancialAssistanceLevels)
+        print "InputArrayForProbEstimation", InputArrayForProbEstimation
+
+        Estimated_prob = logreg.predict_proba(InputArrayForProbEstimation.reshape(-1, 1))
+        #print Estimated_prob
 
         # Put the result into a dictionary
         ProbDict = {}
 
         for s in range(self.nScenario):
             for i in range(len(self.ownerNums)):
-                for j in range(nDecision_state):
+                for j in range(self.Decision_states):
                     for k in range(self.numberOfFinancialAsstValues):
-                        owner = Data_df[Data_df['Level'] == k].iloc[0]['OwnerIdx']
-                        ProbDict[s, i, j, k] = State_prob[owner,j]
+                        ProbDict[s, i, j, k] = Estimated_prob[k, j]
 
         for s in range(self.nScenario):
             for i in range(len(self.ownerNums)):
@@ -263,7 +292,7 @@ class OptimizationModel():
                         l=1
                     ProbDict[s, i, l, k]= -99
 
-        return ProbDict
+        return ProbDict, CostOfFinancialAssistanceLevels
 
     '''
     CalcSecondStageValue method:
