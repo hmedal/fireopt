@@ -20,9 +20,9 @@ if __name__ == "__main__":
 #    optModel = opt.OptimizationModel(graph, paramsDict, None, None)
     optModel = opt.OptimizationModel(graph, paramsDict)
 #    optModel.optimize()
-    print "We've made it this far!"
-    optModel.writeResults('modified Santa Fe results 4')
-    print "The file has been created."
+#    print "We've made it this far!"
+    optModel.writeResults('modified Santa Fe results 12')
+#    print "The file has been created."
 
 stop = timeit.default_timer()
 
