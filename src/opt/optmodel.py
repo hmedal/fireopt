@@ -61,7 +61,7 @@ class OptimizationModel():
         
         for j in range(self.nOwners):
             for k in range(self.numberOfFinancialAsstValues):
-                if self.m.getVarByName("y_j%s_k%s" % (j,k)) == 1:
+                if self.m.getVarByName("y_j%s_k%s" % (j,k)).x == 1:
                     print "%s: %s" % (j,k)
         
         for k in range(self.numberOfFinancialAsstValues):
@@ -515,8 +515,8 @@ class OptimizationModel():
     def writeResults(self, file):
         
         if self.m.status == GRB.Status.OPTIMAL:
-            self.m.write("%s.sol" % file)
-            self.m.write("%s.lp" % file)
+            #self.m.write("%s.sol" % file)
+            #self.m.write("%s.lp" % file)
             print ('\nOBJECTIVE VALUE: %g' % self.m.objVal)
             for v in self.m.getVars():
                 print('%s %g' % (v.varName, v.x))
