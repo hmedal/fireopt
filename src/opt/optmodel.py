@@ -23,10 +23,8 @@ class OptimizationModel():
     '''
     def __init__(self, graph, paramDF):
         self.nScenario = paramDF['numScenarios']
-        #self.C_k = paramDF['Cost']
         self.Budget_param = paramDF['budget']
         self.numberOfFinancialAsstValues = paramDF['numFinancialAssLevel']
-        self.numberOfRowforEachlevel = 10
         self.landowners, self.ownerNums, self.nOwners = self.createLandownersList(graph)
         print "ownerNums", self.ownerNums
         self.setParams(graph, paramDF)
@@ -34,7 +32,7 @@ class OptimizationModel():
         print "line 29"
         self.Decision_states = self.CreateScenarioDecisionStates()
         print "line 31"
-        self.LogitRegData = self.CreateLogRegDataFile()
+        #self.LogitRegData = self.CreateLogRegDataFile()
         self.Prob, self.C_k = self.ProbDecisionState(paramDF)
         print "line 33"
 #        self.numberOfFinancialAsstValues = paramDF['numFinancialAssLevel']
@@ -198,6 +196,8 @@ class OptimizationModel():
 
         return Decision_states
 
+    '''
+
     def CreateLogRegDataFile(self):  ##newly added method
 
         Financial_level_data = "../../data/AsstanceLevel_probability.csv"
@@ -224,18 +224,17 @@ class OptimizationModel():
 
         return LogRegression_df
 
+    '''
 
     def ProbDecisionState(self, paramDF):
-        #Data_file = "../../data/LogRegression.csv"
-        #Data_file = "../../data/LogRegression_3.csv"
 
-        Data_df = self.LogitRegData
-        #Data_df = pd.read_csv(Data_file, delimiter=',', usecols=[0, 1, 2, 3])
+        Data_file = "../../data/Synthetic Data.csv"
 
+        Data_df = pd.read_csv(Data_file, delimiter=',', usecols=[1, 2, 3])
+        print "Data_df", Data_df
         nOwner = (len(self.ownerNums))
         nDecision_state = 2
-        #nLevel = 5
-        #print "Data_df", Data_df
+
         train_Feature = Data_df['Amount'].as_matrix().reshape(-1, 1)  # we only take the first two features.
         train_Target = Data_df['Decision'].as_matrix()
 
@@ -293,6 +292,7 @@ class OptimizationModel():
                     ProbDict[s, i, l, k]= -99
 
         return ProbDict, CostOfFinancialAssistanceLevels
+
 
     '''
     CalcSecondStageValue method:
@@ -424,6 +424,10 @@ class OptimizationModel():
     def CalcAllSecondStageValues(self):
         secondStageValues = {}
         #secondStageValues[s] = self.CalcSecondStageValue()
+        nodes = []  # list of nodes
+
+        node_gen = 0
+
         for s in range(self.nScenario):
             Land = DGG.copy() ####DGG the data graph
             Duration = [24*60]
@@ -439,7 +443,7 @@ class OptimizationModel():
                 else:
                     Land.node[nod]['WUI'] = 0
 
-            fire_duration = Duration[0]
+            #fire_duration = Duration[0]
             MaxDuration = max(Duration) + 100 ## Duration comes from where...why add 100??
 
             t = [[MaxDuration for i in range(N_Nodes)] for i in range(N_Nodes)]  ## where from N_nodes comes-the data
@@ -475,7 +479,7 @@ class OptimizationModel():
             Num_igpoints = 5
             Max_Num__sub_Scenario = 5000
 
-            nodes = []
+            #nodes = []
 
             Burnt = []
             #SumBurnt = 0
@@ -483,7 +487,8 @@ class OptimizationModel():
             AveBurnt = 0
 
             while (Number_Sub_scenario_counted < Max_Num__sub_Scenario):
-                nodes.append(self.Generate_Random_igpoint(Num_igpoints))
+                if node_gen == 0:
+                    nodes.append(self.Generate_Random_igpoint(Num_igpoints))
                 igpoints = nodes[Number_Sub_scenario_counted][:Num_igpoints]
                 Number_Sub_scenario_counted += 1
                 Burnt.append(self.spread(igpoints, Land, SPLength, fire_duration))
@@ -491,6 +496,7 @@ class OptimizationModel():
             Total_Burnt = sum([i[0] for i in Burnt])
             (AveWUIBurnt,STDWUIBurnt) = self.SDCalculate(Burnt,Number_Sub_scenario_counted,1)
             secondStageValues[s] = AveBurnt
+            node_gen = node_gen + 1
             print "Scenario %s" % (s)
         # fill in here
         return secondStageValues
