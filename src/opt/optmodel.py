@@ -11,7 +11,8 @@ from sklearn import linear_model
 import random
 import time
 from Data_SantaFe import *
-
+import pickle
+import os.path
 
 class OptimizationModel():
     '''
@@ -423,6 +424,14 @@ class OptimizationModel():
 
     def CalcAllSecondStageValues(self):
         secondStageValues = {}
+
+        scenario_nodelist = {}
+        fname = str(self.nScenario) + 'scenario_nodelist.txt'
+        if os.path.isfile(fname):
+            f = open(fname, 'rb')  # Pickle file is newly created
+            scenario_nodelist = pickle.load(f)  # dump data to f
+            f.close()
+
         #secondStageValues[s] = self.CalcSecondStageValue()
         nodes = []  # list of nodes
 
@@ -487,8 +496,12 @@ class OptimizationModel():
             AveBurnt = 0
 
             while (Number_Sub_scenario_counted < Max_Num__sub_Scenario):
-                if node_gen == 0:
-                    nodes.append(self.Generate_Random_igpoint(Num_igpoints))
+
+                if os.path.isfile(fname):
+                    nodes = scenario_nodelist[s]
+                else:
+                    if node_gen == 0:
+                        nodes.append(self.Generate_Random_igpoint(Num_igpoints))
                 igpoints = nodes[Number_Sub_scenario_counted][:Num_igpoints]
                 Number_Sub_scenario_counted += 1
                 Burnt.append(self.spread(igpoints, Land, SPLength, fire_duration))
@@ -496,9 +509,15 @@ class OptimizationModel():
             Total_Burnt = sum([i[0] for i in Burnt])
             (AveWUIBurnt,STDWUIBurnt) = self.SDCalculate(Burnt,Number_Sub_scenario_counted,1)
             secondStageValues[s] = AveBurnt
+            scenario_nodelist[s] = nodes
             node_gen = node_gen + 1
             print "Scenario %s" % (s)
         # fill in here
+        if os.path.isfile(fname) == False:
+            f = open(fname, 'wb')  # Pickle file is newly created
+            pickle.dump(scenario_nodelist, f)  # dump data to f
+            f.close()
+
         return secondStageValues
 
     #def CalcSecondStageValue(self):
