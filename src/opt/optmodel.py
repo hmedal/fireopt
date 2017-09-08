@@ -23,36 +23,38 @@ class OptimizationModel():
     Constructor
     '''
     def __init__(self, graph, paramDF):
-        self.nScenario = paramDF['numScenarios']
+        #self.nScenario = paramDF['numScenarios']
         self.Budget_param = paramDF['budget']
-        self.numberOfFinancialAsstValues = paramDF['numFinancialAssLevel']
+        self.numberOfFinancialAsstValues = paramDF['numFinancialAsstLevels']
         self.landowners, self.ownerNums, self.nOwners = self.createLandownersList(graph)
         print "ownerNums", self.ownerNums
+        self.nScenario = (2)**(self.nOwners)
+        print "number of scenarios: ", self.nScenario
         self.setParams(graph, paramDF)
         self.LandOwnerNodeList = self.LandOwnerNodeList(graph)
-        print "line 29"
+#        print "line 29"
         self.Decision_states = self.CreateScenarioDecisionStates()
-        print "line 31"
+#        print "line 31"
         #self.LogitRegData = self.CreateLogRegDataFile()
         self.Prob, self.C_k = self.ProbDecisionState(paramDF)
-        print "line 33"
+#        print "line 33"
 #        self.numberOfFinancialAsstValues = paramDF['numFinancialAssLevel']
         self.SecondStgValues = self.CalcAllSecondStageValues()
-        print "line 36"
-        print "line 38"
+#        print "line 36"
+#        print "line 38"
 #        self.landowners, self.ownerNums, self.nOwners = self.createLandownersList(graph)
         self.DecisionProb = self.filterProbDict()
-        print "line 41"
+#        print "line 41"
 #        self.LandOwnerNodeList = self.LandOwnerNodeList()
         self.m = self.createModel()
-        print self.Decision_states
-        for n in range(self.nScenario):
-            print "Scenario %s second stage value: %s" % (n, self.SecondStgValues[n])
-            for r in range(self.nOwners):
-                print "In scenario %s, landowner %s's decision is %s" % (n, r, self.lDecState(n,r))
-                for l in (0,1):
-                    for k in range(self.numberOfFinancialAsstValues):
-                        print "[%s,%s,%s,%s] = %s" % (n,r,l,k,self.Prob[n,r,l,k])
+#        print self.Decision_states
+#        for n in range(self.nScenario):
+#            print "Scenario %s second stage value: %s" % (n, self.SecondStgValues[n])
+#            for r in range(self.nOwners):
+#                print "In scenario %s, landowner %s's decision is %s" % (n, r, self.lDecState(n,r))
+#                for l in (0,1):
+#                    for k in range(self.numberOfFinancialAsstValues):
+#                        print "[%s,%s,%s,%s] = %s" % (n,r,l,k,self.Prob[n,r,l,k])
 
     def setParams(self, graph, paramDF):
         self.graph = graph
@@ -79,17 +81,17 @@ class OptimizationModel():
 
     def filterProbDict(self):
         DecisionProb = {}
-        print self.Prob
+#        print self.Prob
         for n in range(self.nScenario):
             for k in range(self.numberOfFinancialAsstValues):
                 for j in range(self.nOwners):
                     for l in (0,1):
                         if (n,j,l,k) in self.Prob:
-                            print "[%s,%s,%s,%s]" % (n,j,l,k)
+#                            print "[%s,%s,%s,%s]" % (n,j,l,k)
                             if self.Prob[n,j,l,k] > -99:
-                                print "This worked."
+#                                print "This worked."
                                 DecisionProb[n,j,k] = self.Prob[n,j,l,k]
-        print DecisionProb
+#        print DecisionProb
         return DecisionProb
 
 
@@ -527,8 +529,20 @@ class OptimizationModel():
     def writeResults(self, file):
         
         if self.m.status == GRB.Status.OPTIMAL:
-            self.m.write("%s.sol" % file)
-            self.m.write("%s.lp" % file)
+            #self.m.write("%s.sol" % file)
+            #self.m.write("%s.lp" % file)
             print ('\nOBJECTIVE VALUE: %g' % self.m.objVal)
             for v in self.m.getVars():
                 print('%s %g' % (v.varName, v.x))
+            for n in range(self.nScenario):
+                for r in range(self.nOwners):        
+                    for k in range(self.numberOfFinancialAsstValues):
+                        print "[%s,%s,%s] = %s" % (n,r,k,self.DecisionProb[n,r,k])
+            
+            print self.Budget_param, self.m.objVal
+            for j in range(self.nOwners):
+                for k in range(self.numberOfFinancialAsstValues):
+                    if self.m.getVarByName("y_j%s_k%s" % (j,k)).x == 1:
+                        print "%s: %s" % (j,k)
+            for k in range(self.numberOfFinancialAsstValues):
+                print self.C_k[k]
