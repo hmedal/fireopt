@@ -1,6 +1,4 @@
 {
-"budget" : 5000,
-  "numScenarios" : 8,
-  "numFinancialAssLevel" : 5
-  
+  "budget" : 5000,
+  "numFinancialAsstLevels" : 5 
 }
