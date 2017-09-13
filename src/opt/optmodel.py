@@ -29,9 +29,10 @@ class OptimizationModel():
         self.landowners, self.ownerNums, self.nOwners = self.createLandownersList(graph)
         print "ownerNums", self.ownerNums
         self.nScenario = (2)**(self.nOwners)
+        self.Cell_area = 3.4595
         print "number of scenarios: ", self.nScenario
         self.setParams(graph, paramDF)
-        self.LandOwnerNodeList = self.LandOwnerNodeList(graph)
+        self.LandOwnerNodeList, self.AreaBelongsToLandowners = self.LandOwnerNodeList(graph)
 #        print "line 29"
         self.Decision_states = self.CreateScenarioDecisionStates()
 #        print "line 31"
@@ -166,7 +167,7 @@ class OptimizationModel():
                                 name = "6c_j"+str(r)+"_k"+str(k)+"_n"+str(n))
 
         #6e
-        m.addConstr(quicksum(quicksum(self.C_k[k]*self.y[j, k] for k in range(self.numberOfFinancialAsstValues))
+        m.addConstr(quicksum(quicksum(self.C_k[k]*self.y[j, k] for k in range(self.numberOfFinancialAsstValues))*self.AreaBelongsToLandowners[j]
                             for j in range(self.nOwners)) <= self.Budget_param, name = "6e")
 
         #6f
@@ -315,7 +316,14 @@ class OptimizationModel():
                 if int(node[1]['owner']) == i+1: ##checking the owner of a node in data.gml is the owner in the list
                     Landowners_node_lst[i].append(node[0])
 
-        return Landowners_node_lst
+
+        AreaOfLandowners = []  #Stores the total area (acres) belongs to each landowners
+        for i in range(len(self.ownerNums)):
+            total_land_area = self.Cell_area*len(Landowners_node_lst[i])
+            AreaOfLandowners.append(total_land_area)
+
+
+        return Landowners_node_lst, AreaOfLandowners
 
     def spread(self, ignition_points, Land, SPLength, fire_duration):
 
@@ -546,3 +554,4 @@ class OptimizationModel():
                         print "%s: %s" % (j,k)
             for k in range(self.numberOfFinancialAsstValues):
                 print self.C_k[k]
+            print "area of each landowners", self.AreaBelongsToLandowners
