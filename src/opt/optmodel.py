@@ -23,8 +23,6 @@ class OptimizationModel():
     Constructor
     '''
     def __init__(self, graph, paramDF):
-        print("Test1")
-        print("Test2")
         #self.nScenario = paramDF['numScenarios']
         self.Budget_param = paramDF['budget']
         self.numberOfFinancialAsstValues = paramDF['numFinancialAsstLevels']
