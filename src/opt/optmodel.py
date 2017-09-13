@@ -546,12 +546,18 @@ class OptimizationModel():
                 for r in range(self.nOwners):        
                     for k in range(self.numberOfFinancialAsstValues):
                         print "[%s,%s,%s] = %s" % (n,r,k,self.DecisionProb[n,r,k])
-            
+            allocations = {}
             print self.Budget_param, self.m.objVal
+            print "offer allocation:"
             for j in range(self.nOwners):
                 for k in range(self.numberOfFinancialAsstValues):
                     if self.m.getVarByName("y_j%s_k%s" % (j,k)).x == 1:
                         print "%s: %s" % (j,k)
+            print "financial assistance levels:"
             for k in range(self.numberOfFinancialAsstValues):
                 print self.C_k[k]
-            print "area of each landowners", self.AreaBelongsToLandowners
+            print "area of each landowners:"
+            for j in range(self.nOwners):
+                print self.AreaBelongsToLandowners[j]
+            
+            #print self.nOwners, self.Budget_param,self.m.objVal,
