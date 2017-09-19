@@ -4,26 +4,40 @@ import optmodel as opt
 import json
 import timeit
 
-start = timeit.default_timer()
+#start = timeit.default_timer()
 
 def readGraph(graphFile):
     return nx.read_gml(graphFile)
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Read filenames.')
-    parser.add_argument('-g', '--graph', help='the graph file', default = "../../data/SantaFe with 4 landowners.gml")
-    parser.add_argument('-p', '--params', help='the parameters file', default = "../../params/paramsFile.json")
-    args = parser.parse_args()
-    paramsFile = args.params
-    graph = readGraph(args.graph)
-    paramsDict = json.loads(open(paramsFile).read())
-#    optModel = opt.OptimizationModel(graph, paramsDict, None, None)
-    optModel = opt.OptimizationModel(graph, paramsDict)
-#    optModel.optimize()
-#    print "We've made it this far!"
-    optModel.writeResults('modified Santa Fe results 14')
-#    print "The file has been created."
+n = 4
 
-stop = timeit.default_timer()
+while n < 8:
+    if __name__ == "__main__":
+        parser = argparse.ArgumentParser(description='Read filenames.')
+        parser.add_argument('-g', '--graph', help='the graph file', default = "../../data/SantaFe with %s landowners.gml" % n)
+        parser.add_argument('-p', '--params', help='the parameters file', default = "../../params/paramsFile.json")
+        args = parser.parse_args()
+        paramsFile = args.params
+        graph = readGraph(args.graph)
+        paramsDict = json.loads(open(paramsFile).read())
+        budget = 10000
+        while budget < 26000:
+            for levels in range(2,11):
+                start = timeit.default_timer()
+                paramsDict["budget"] = budget
+                paramsDict["numFinancialAsstLevels"] = levels
+#           optModel = opt.OptimizationModel(graph, paramsDict, None, None)
+                optModel = opt.OptimizationModel(graph, paramsDict)
+#           optModel.optimize()
+#           print "We've made it this far!"
+#                optModel.writeResults('modified Santa Fe results 14')
+#           print "The file has been created."
+                stop = timeit.default_timer()
+                optModel.writeResults('experiments.txt', start, stop)
+                print "Total run time: %s" % (stop - start)
+            budget = budget + 1000
+    n = n + 1
+    
+#stop = timeit.default_timer()
 
-print "Total run time: %s" % (stop - start)
+#print "Total run time: %s" % (stop - start)

@@ -37,7 +37,7 @@ class OptimizationModel():
         self.Decision_states = self.CreateScenarioDecisionStates()
 #        print "line 31"
         #self.LogitRegData = self.CreateLogRegDataFile()
-        self.Prob, self.C_k = self.ProbDecisionState(paramDF)
+        self.Prob, self.C_k, self.maxOffered = self.ProbDecisionState(paramDF)
 #        print "line 33"
 #        self.numberOfFinancialAsstValues = paramDF['numFinancialAssLevel']
         self.SecondStgValues = self.CalcAllSecondStageValues()
@@ -295,7 +295,7 @@ class OptimizationModel():
                         l=1
                     ProbDict[s, i, l, k]= -99
 
-        return ProbDict, CostOfFinancialAssistanceLevels
+        return ProbDict, CostOfFinancialAssistanceLevels, maximum_amount_offered
 
 
     '''
@@ -534,8 +534,8 @@ class OptimizationModel():
         # this will need to wait
         #return SecondStageValue 
 
-    def writeResults(self, file):
-        
+    def writeResults(self, file, start, stop):
+        f = open(file, "a+")
         if self.m.status == GRB.Status.OPTIMAL:
             #self.m.write("%s.sol" % file)
             #self.m.write("%s.lp" % file)
@@ -546,18 +546,29 @@ class OptimizationModel():
                 for r in range(self.nOwners):        
                     for k in range(self.numberOfFinancialAsstValues):
                         print "[%s,%s,%s] = %s" % (n,r,k,self.DecisionProb[n,r,k])
-            allocations = {}
+            allocations = []
             print self.Budget_param, self.m.objVal
             print "offer allocation:"
             for j in range(self.nOwners):
                 for k in range(self.numberOfFinancialAsstValues):
                     if self.m.getVarByName("y_j%s_k%s" % (j,k)).x == 1:
+                        allocations.append(k)
                         print "%s: %s" % (j,k)
+#            print self.m.getConstrByName("6e").lhs()
             print "financial assistance levels:"
             for k in range(self.numberOfFinancialAsstValues):
                 print self.C_k[k]
             print "area of each landowners:"
             for j in range(self.nOwners):
                 print self.AreaBelongsToLandowners[j]
-            
+#            TotalBudgetUsed = quicksum(quicksum(self.C_k[k]*self.y[j, k] for k in range(self.numberOfFinancialAsstValues))*self.AreaBelongsToLandowners[j]
+#                            for j in range(self.nOwners))
+            TotalBudgetUsed = 0
+            for j in range(self.nOwners):
+                TotalBudgetUsed = TotalBudgetUsed + self.C_k[allocations[j]]*self.AreaBelongsToLandowners[j]
+            RemainingBudget = self.Budget_param - TotalBudgetUsed
+            runtime = stop - start
+#Landowners, Budget, Expected Damage, Run Time, Allocation, Levels, Total Budget Used, Remaining Budget, Maximum Amount Offered, Level Amounts, Area of Each Landowner
+            f.write("%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s\n" % (self.nOwners, self.Budget_param, self.m.objVal, runtime, allocations, self.numberOfFinancialAsstValues, TotalBudgetUsed, RemainingBudget, self.maxOffered, self.C_k, self.AreaBelongsToLandowners))
+            print "The file has been updated."
             #print self.nOwners, self.Budget_param,self.m.objVal,
