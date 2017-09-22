@@ -174,6 +174,12 @@ class OptimizationModel():
         for j in range(self.nOwners):
             m.addConstr(quicksum(self.y[j, k] for k in range(self.numberOfFinancialAsstValues)) == 1,
                         name = "6f_j"+str(j))
+            
+        #6g -- Uniform
+        for j in range(self.nOwners-1):
+            for k in range(self.numberOfFinancialAsstValues):
+                m.addConstr(self.y[j, k] == self.y[j+1, k], name = "uniform constraint")
+                m.addConstr(self.y[j, 0] == 0, name = "greater than 0")
 
         #6a -- Objective
         m.setObjective(quicksum(quicksum(w[self.nOwners-1, k, n] for k in range(self.numberOfFinancialAsstValues))

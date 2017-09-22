@@ -9,7 +9,7 @@ import timeit
 def readGraph(graphFile):
     return nx.read_gml(graphFile)
 
-n = 6
+n = 3
 
 while n < 8:
     if __name__ == "__main__":
@@ -20,9 +20,9 @@ while n < 8:
         paramsFile = args.params
         graph = readGraph(args.graph)
         paramsDict = json.loads(open(paramsFile).read())
-        budget = 20000
-        while budget < 150000:
-            for levels in (2, 5, 10, 15):
+        budget = 40000
+        while budget <= 100000:
+            for levels in (5, 10):
                 start = timeit.default_timer()
                 paramsDict["budget"] = budget
                 paramsDict["numFinancialAsstLevels"] = levels
@@ -33,7 +33,7 @@ while n < 8:
 #                optModel.writeResults('modified Santa Fe results 14')
 #           print "The file has been created."
                 stop = timeit.default_timer()
-                optModel.writeResults('representative experiments.txt', start, stop)
+                optModel.writeResults('uniform experiments.txt', start, stop)
                 print "Total run time: %s" % (stop - start)
             budget = budget + 20000
     n = n + 1
