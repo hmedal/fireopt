@@ -270,15 +270,16 @@ class OptimizationModel():
         for i in range(self.numberOfFinancialAsstValues - 1):
             DiscretizedFinancialAmountValues.append(DiscretizedFinancialAmountValues[
                                                         -1] + Amount_increment)  ##Add the amount increment to the last element added to the list to construct the bound of the financial assistance levels.
-
+        '''
         CostOfFinancialAssistanceLevels = []  ##Contains the costs regarding the financial assistance values. They are the midpoints of the upper and lower bounds of the corresponding financial assistance values.
         CostOfFinancialAssistanceLevels.append(
             DiscretizedFinancialAmountValues[0])  # the first element is inserted manually
         for j in range(1, len(DiscretizedFinancialAmountValues)):
             CostOfFinancialAssistanceLevels.append(
                 (DiscretizedFinancialAmountValues[j - 1] + DiscretizedFinancialAmountValues[j]) / 2.0)
+        '''
 
-        InputArrayForProbEstimation = np.array(CostOfFinancialAssistanceLevels)
+        InputArrayForProbEstimation = np.array(DiscretizedFinancialAmountValues)
         print "InputArrayForProbEstimation", InputArrayForProbEstimation
 
         Estimated_prob = logreg.predict_proba(InputArrayForProbEstimation.reshape(-1, 1))
@@ -301,7 +302,7 @@ class OptimizationModel():
                         l=1
                     ProbDict[s, i, l, k]= -99
 
-        return ProbDict, CostOfFinancialAssistanceLevels, maximum_amount_offered
+        return ProbDict, DiscretizedFinancialAmountValues, maximum_amount_offered
 
 
     '''
