@@ -1,4 +1,5 @@
 {
   "budget" : 2000,
-  "numFinancialAsstLevels" : 20
+  "numFinancialAsstLevels" : 20,
+  "numLandowners" : 3
 }

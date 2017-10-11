@@ -13,6 +13,7 @@ import time
 from Data_SantaFe import *
 import pickle
 import os.path
+import array
 
 class OptimizationModel():
     '''
@@ -26,12 +27,14 @@ class OptimizationModel():
         #self.nScenario = paramDF['numScenarios']
         self.Budget_param = paramDF['budget']
         self.numberOfFinancialAsstValues = paramDF['numFinancialAsstLevels']
+        self.numLandowners = paramDF['numLandowners']
+        self.graph = self.reassignLandowners(graph)
         self.landowners, self.ownerNums, self.nOwners = self.createLandownersList(graph)
         print "ownerNums", self.ownerNums
         self.nScenario = (2)**(self.nOwners)
         self.Cell_area = 3.4595
         print "number of scenarios: ", self.nScenario
-        self.setParams(graph, paramDF)
+#        self.setParams(graph, paramDF)
         self.LandOwnerNodeList, self.AreaBelongsToLandowners = self.LandOwnerNodeList(graph)
 #        print "line 29"
         self.Decision_states = self.CreateScenarioDecisionStates()
@@ -60,6 +63,19 @@ class OptimizationModel():
     def setParams(self, graph, paramDF):
         self.graph = graph
         self.paramDF = paramDF
+        
+    def reassignLandowners(self, graph):
+        reassigned = []
+
+        acreNodes = np.arange(nx.number_of_nodes(graph))
+        
+        reassigned = np.array_split(acreNodes, self.numLandowners)
+
+        for owner in range(len(reassigned)):
+            for acres in reassigned[owner]:
+                graph.node[acres]['owner'] = owner+1
+
+        return graph
 
     def createLandownersList(self, graph):
         #iterate through nodes in graph and return a list of all the unique landowners
@@ -179,7 +195,7 @@ class OptimizationModel():
         for j in range(self.nOwners-1):
             for k in range(self.numberOfFinancialAsstValues):
                 m.addConstr(self.y[j, k] == self.y[j+1, k], name = "uniform constraint")
-                m.addConstr(self.y[j, 0] == 0, name = "greater than 0")
+#                m.addConstr(self.y[j, 0] == 0, name = "greater than 0")
 
         #6a -- Objective
         m.setObjective(quicksum(quicksum(w[self.nOwners-1, k, n] for k in range(self.numberOfFinancialAsstValues))
