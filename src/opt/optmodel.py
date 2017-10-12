@@ -458,6 +458,8 @@ class OptimizationModel():
     def CalcAllSecondStageValues(self):
         secondStageValues = {}
 
+        '''
+        #Undo the fixing of the set of wildfire sub scenarios
         scenario_nodelist = {}
         fname = str(self.nScenario) + 'scenario_nodelist.txt'
         if os.path.isfile(fname):
@@ -469,6 +471,7 @@ class OptimizationModel():
         nodes = []  # list of nodes
 
         node_gen = 0
+        '''
 
         for s in range(self.nScenario):
             Land = DGG.copy() ####DGG the data graph
@@ -521,7 +524,7 @@ class OptimizationModel():
             Num_igpoints = 5
             Max_Num__sub_Scenario = 5000
 
-            #nodes = []
+            nodes = []  #comment out this here when fixing the wildfire sub-scenarios fixed in all scenarios and replications
 
             Burnt = []
             #SumBurnt = 0
@@ -530,11 +533,15 @@ class OptimizationModel():
 
             while (Number_Sub_scenario_counted < Max_Num__sub_Scenario):
 
+                '''Undo the fixing of the set of wildfire sub scenarios
                 if os.path.isfile(fname):
                     nodes = scenario_nodelist[s]
                 else:
                     if node_gen == 0:
                         nodes.append(self.Generate_Random_igpoint(Num_igpoints))
+                igpoints = nodes[Number_Sub_scenario_counted][:Num_igpoints]
+                '''
+                nodes.append(self.Generate_Random_igpoint(Num_igpoints))
                 igpoints = nodes[Number_Sub_scenario_counted][:Num_igpoints]
                 Number_Sub_scenario_counted += 1
                 Burnt.append(self.spread(igpoints, Land, SPLength, fire_duration))
@@ -542,15 +549,16 @@ class OptimizationModel():
             Total_Burnt = sum([i[0] for i in Burnt])
             (AveWUIBurnt,STDWUIBurnt) = self.SDCalculate(Burnt,Number_Sub_scenario_counted,1)
             secondStageValues[s] = AveBurnt
-            scenario_nodelist[s] = nodes
-            node_gen = node_gen + 1
+            #scenario_nodelist[s] = nodes
+            #node_gen = node_gen + 1
             print "Scenario %s" % (s)
         # fill in here
+        '''Undo the fixing of the set of wildfire sub scenarios
         if os.path.isfile(fname) == False:
             f = open(fname, 'wb')  # Pickle file is newly created
             pickle.dump(scenario_nodelist, f)  # dump data to f
             f.close()
-
+        '''
         return secondStageValues
 
     #def CalcSecondStageValue(self):
