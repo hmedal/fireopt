@@ -1,5 +1,6 @@
 {
   "budget" : 2000,
   "numFinancialAsstLevels" : 20,
-  "numLandowners" : 3
+  "numLandowners" : 3,
+  "uniform" : 0
 }

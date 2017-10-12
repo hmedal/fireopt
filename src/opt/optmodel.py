@@ -28,6 +28,7 @@ class OptimizationModel():
         self.Budget_param = paramDF['budget']
         self.numberOfFinancialAsstValues = paramDF['numFinancialAsstLevels']
         self.numLandowners = paramDF['numLandowners']
+        self.uniform = paramDF['uniform']
         self.graph = self.reassignLandowners(graph)
         self.landowners, self.ownerNums, self.nOwners = self.createLandownersList(graph)
         print "ownerNums", self.ownerNums
@@ -192,9 +193,10 @@ class OptimizationModel():
                         name = "6f_j"+str(j))
             
         #6g -- Uniform
-        for j in range(self.nOwners-1):
-            for k in range(self.numberOfFinancialAsstValues):
-                m.addConstr(self.y[j, k] == self.y[j+1, k], name = "uniform constraint")
+        if self.uniform == 1:
+            for j in range(self.nOwners-1):
+                for k in range(self.numberOfFinancialAsstValues):
+                    m.addConstr(self.y[j, k] == self.y[j+1, k], name = "uniform constraint")
 #                m.addConstr(self.y[j, 0] == 0, name = "greater than 0")
 
         #6a -- Objective
@@ -598,8 +600,12 @@ class OptimizationModel():
             for j in range(self.nOwners):
                 TotalBudgetUsed = TotalBudgetUsed + self.C_k[allocations[j]]*self.AreaBelongsToLandowners[j]
             RemainingBudget = self.Budget_param - TotalBudgetUsed
+            if self.uniform == 0:
+                allocMethod = "Risk-based"
+            else:
+                allocMethod = "Uniform"
             runtime = stop - start
 #Landowners, Budget, Expected Damage, Run Time, Allocation, Levels, Total Budget Used, Remaining Budget, Maximum Amount Offered, Level Amounts, Area of Each Landowner
-            f.write("%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s\n" % (self.nOwners, self.Budget_param, self.m.objVal, runtime, allocations, self.numberOfFinancialAsstValues, TotalBudgetUsed, RemainingBudget, self.maxOffered, self.C_k, self.AreaBelongsToLandowners))
+            f.write("%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s\n" % (self.nOwners, self.Budget_param, self.m.objVal, runtime, allocations, self.numberOfFinancialAsstValues, allocMethod, TotalBudgetUsed, RemainingBudget, self.maxOffered, self.C_k, self.AreaBelongsToLandowners))
             print "The file has been updated."
             #print self.nOwners, self.Budget_param,self.m.objVal,
