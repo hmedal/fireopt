@@ -29,7 +29,8 @@ class OptimizationModel():
         self.numberOfFinancialAsstValues = paramDF['numFinancialAsstLevels']
         self.numLandowners = paramDF['numLandowners']
         self.uniform = paramDF['uniform']
-        self.graph = self.reassignLandowners(graph)
+        self.sizeBlocks = paramDF['sizeBlocks']
+        self.graph, self.d = self.reassignLandowners(graph)
         self.landowners, self.ownerNums, self.nOwners = self.createLandownersList(graph)
         print "ownerNums", self.ownerNums
         self.nScenario = (2)**(self.nOwners)
@@ -66,17 +67,43 @@ class OptimizationModel():
         self.paramDF = paramDF
         
     def reassignLandowners(self, graph):
+        #sequentially and equally assign landowners to the landscape
         reassigned = []
 
         acreNodes = np.arange(nx.number_of_nodes(graph))
         
         reassigned = np.array_split(acreNodes, self.numLandowners)
-
+        print reassigned
+        
         for owner in range(len(reassigned)):
             for acres in reassigned[owner]:
                 graph.node[acres]['owner'] = owner+1
+        
+        d, graph = self.groupAcres(graph, reassigned)
 
-        return graph
+        return graph, d
+    
+    def groupAcres(self, graph, acreList):
+        #create smaller groups of each landowner's acres and also add group number to the NetworkX graph
+        d = []
+        
+        for j in range(len(acreList)):
+            a = 0
+            group = 0
+            while a <= len(acreList[j]):
+                i = 0
+                block = []
+                while i < self.sizeBlocks:
+                    block[i] = acreList[j][a]
+                    graph.node[acreList[j][a]]['group'] = group
+                    a = a + 1
+                    i = i + 1
+                d[j][group] = block
+                group = group + 1
+        
+        print d
+        
+        return d, graph
 
     def createLandownersList(self, graph):
         #iterate through nodes in graph and return a list of all the unique landowners
