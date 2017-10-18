@@ -70,40 +70,41 @@ class OptimizationModel():
         #sequentially and equally assign landowners to the landscape
         reassigned = []
 
-        acreNodes = np.arange(nx.number_of_nodes(graph))
+        cellNodes = np.arange(nx.number_of_nodes(graph))
         
-        reassigned = np.array_split(acreNodes, self.numLandowners)
+        reassigned = np.array_split(cellNodes, self.numLandowners)
         print reassigned
         
         for owner in range(len(reassigned)):
-            for acres in reassigned[owner]:
-                graph.node[acres]['owner'] = owner+1
+            for landCell in reassigned[owner]:
+                graph.node[landCell]['owner'] = owner+1
         
-        d, graph = self.groupAcres(graph, reassigned)
+        graph, d = self.groupCells(graph, reassigned)
 
         return graph, d
     
-    def groupAcres(self, graph, acreList):
-        #create smaller groups of each landowner's acres and also add group number to the NetworkX graph
-        d = []
+    def groupCells(self, graph, cellList):
+        #create smaller groups of each landowner's cells and also add group number to the NetworkX graph
         
-        for j in range(len(acreList)):
+        d = {}
+        
+        for j in range(len(cellList)):
             a = 0
             group = 0
-            while a <= len(acreList[j]):
+            f = len(cellList[j])
+            while f > 0:
                 i = 0
                 block = []
-                while i < self.sizeBlocks:
-                    block[i] = acreList[j][a]
-                    graph.node[acreList[j][a]]['group'] = group
+                while i < self.sizeBlocks and f > 0:
+                    block.append(cellList[j][a])
+                    graph.node[cellList[j][a]]['group'] = group
                     a = a + 1
                     i = i + 1
-                d[j][group] = block
+                    f = f - 1
+                d[j, group] = block
                 group = group + 1
         
-        print d
-        
-        return d, graph
+        return graph, d
 
     def createLandownersList(self, graph):
         #iterate through nodes in graph and return a list of all the unique landowners

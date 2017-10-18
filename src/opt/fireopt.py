@@ -34,7 +34,7 @@ if __name__ == "__main__":
 #                optModel.writeResults('modified Santa Fe results 14')
 #           print "The file has been created."
                     stop = timeit.default_timer()
-                    optModel.writeResults('../../Experiments/Experiments 10-12-2017.txt', start, stop)
+                    optModel.writeResults('../../Experiments/Experiments 10-18-2017.txt', start, stop)
                     print "Total run time: %s" % (stop - start)
                 budget = budget + 20000
     
