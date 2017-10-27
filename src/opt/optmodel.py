@@ -46,14 +46,17 @@ class OptimizationModel():
         self.Prob, self.C_k, self.maxOffered = self.ProbDecisionState(paramDF)
 #        print "line 33"
 #        self.numberOfFinancialAsstValues = paramDF['numFinancialAssLevel']
-        self.SecondStgValues = self.CalcAllSecondStageValues()
 #        print "line 36"
 #        print "line 38"
 #        self.landowners, self.ownerNums, self.nOwners = self.createLandownersList(graph)
         self.DecisionProb = self.filterProbDict()
 #        print "line 41"
 #        self.LandOwnerNodeList = self.LandOwnerNodeList()
-        self.m, self.time = self.createModel()
+        start = timeit.default_timer()
+        self.SecondStgValues = self.CalcAllSecondStageValues()
+        self.m = self.createModel()
+        stop = timeit.default_timer()
+        self.time = stop - start
 #        print self.Decision_states
 #        for n in range(self.nScenario):
 #            print "Scenario %s second stage value: %s" % (n, self.SecondStgValues[n])
@@ -234,16 +237,9 @@ class OptimizationModel():
 
         m.update()
 
-
-        start = timeit.default_timer()
-
         m.optimize()
 
-        stop = timeit.default_timer()
-        
-        time = stop - start
-
-        return m, time
+        return m
 
     '''
     ProbDecisionState method:
