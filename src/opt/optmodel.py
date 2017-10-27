@@ -14,6 +14,7 @@ from Data_SantaFe import *
 import pickle
 import os.path
 import array
+import timeit
 
 class OptimizationModel():
     '''
@@ -52,7 +53,7 @@ class OptimizationModel():
         self.DecisionProb = self.filterProbDict()
 #        print "line 41"
 #        self.LandOwnerNodeList = self.LandOwnerNodeList()
-        self.m = self.createModel()
+        self.m, self.time = self.createModel()
 #        print self.Decision_states
 #        for n in range(self.nScenario):
 #            print "Scenario %s second stage value: %s" % (n, self.SecondStgValues[n])
@@ -73,7 +74,7 @@ class OptimizationModel():
         cellNodes = np.arange(nx.number_of_nodes(graph))
         
         reassigned = np.array_split(cellNodes, self.numLandowners)
-        print reassigned
+#        print reassigned
         
         for owner in range(len(reassigned)):
             for landCell in reassigned[owner]:
@@ -233,9 +234,16 @@ class OptimizationModel():
 
         m.update()
 
+
+        start = timeit.default_timer()
+
         m.optimize()
 
-        return m
+        stop = timeit.default_timer()
+        
+        time = stop - start
+
+        return m, time
 
     '''
     ProbDecisionState method:
@@ -595,7 +603,7 @@ class OptimizationModel():
         # this will need to wait
         #return SecondStageValue 
 
-    def writeResults(self, file, start, stop):
+    def writeResults(self, file):
         f = open(file, "a+")
         if self.m.status == GRB.Status.OPTIMAL:
             #self.m.write("%s.sol" % file)
@@ -632,8 +640,7 @@ class OptimizationModel():
                 allocMethod = "Risk-based"
             else:
                 allocMethod = "Uniform"
-            runtime = stop - start
 #Landowners, Budget, Expected Damage, Run Time, Allocation, Levels, Total Budget Used, Remaining Budget, Maximum Amount Offered, Level Amounts, Area of Each Landowner
-            f.write("%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s\n" % (self.nOwners, self.Budget_param, self.m.objVal, runtime, allocations, self.numberOfFinancialAsstValues, allocMethod, TotalBudgetUsed, RemainingBudget, self.maxOffered, self.C_k, self.AreaBelongsToLandowners))
+            f.write("%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s\n" % (self.nOwners, self.Budget_param, self.m.objVal, self.time, allocations, self.numberOfFinancialAsstValues, allocMethod, TotalBudgetUsed, RemainingBudget, self.maxOffered, self.C_k, self.AreaBelongsToLandowners))
             print "The file has been updated."
             #print self.nOwners, self.Budget_param,self.m.objVal,
