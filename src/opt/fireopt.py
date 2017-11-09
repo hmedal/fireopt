@@ -20,7 +20,7 @@ if __name__ == "__main__":
         paramsFile = args.params
         graph = readGraph(args.graph)
         paramsDict = json.loads(open(paramsFile).read())
-        paramsDict["landscape"] = landFile
+        paramsDict["landscape"] = landscape
         for u in (0, 1, 2):
             paramsDict["method"] = u
             for n in (3, 4, 5, 6):
