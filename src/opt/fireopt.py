@@ -2,11 +2,15 @@ import argparse
 import networkx as nx
 import optmodel as opt
 import json
+import time
 
 def readGraph(graphFile):
     return nx.read_gml(graphFile)
 
 if __name__ == "__main__":
+    f = open("../../Experiments/Experiments 11-8-2017.txt", "a+")
+    f.write("Started " + time.strftime("%c") + "\n")
+    f.write("Landowners|Budget|Expected Damage|Total Run Time|Second Stage Time|Create Model Time|Optimize Time|Allocation|Levels|Allocation Method|Total Budget Used|Remaining Budget|Maximum Amount Offered|Level Amounts|Area of Each Landowner|Time Completed\n")
     parser = argparse.ArgumentParser(description='Read filenames.')
     parser.add_argument('-g', '--graph', help='the graph file', default = "../../data/SantaFe.gml")
     parser.add_argument('-p', '--params', help='the parameters file', default = "../../params/paramsFile.json")
@@ -14,8 +18,8 @@ if __name__ == "__main__":
     paramsFile = args.params
     graph = readGraph(args.graph)
     paramsDict = json.loads(open(paramsFile).read())
-    for u in (0, 1):
-        paramsDict["uniform"] = u
+    for u in (0, 1, 2):
+        paramsDict["method"] = u
         for n in (3, 4, 5, 6):
             paramsDict["numLandowners"] = n
             budget = 20000
@@ -25,5 +29,8 @@ if __name__ == "__main__":
                     paramsDict["numFinancialAsstLevels"] = levels
                     for r in range(5):
                         optModel = opt.OptimizationModel(graph, paramsDict)              
-                        optModel.writeResults('../../Experiments/Experiments 10-27-2017.txt')
+                        optModel.writeResults(f)
+                        f.flush()
                 budget = budget + 20000
+    f.write("Ended " + time.strftime("%c"))
+    f.close()
