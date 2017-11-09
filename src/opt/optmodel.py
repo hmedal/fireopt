@@ -15,7 +15,6 @@ import pickle
 import os.path
 import array
 import timeit
-import matplotlib.pyplot as plt
 from networkx.generators.classic import grid_2d_graph
 
 class OptimizationModel():
