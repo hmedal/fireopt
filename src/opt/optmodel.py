@@ -75,10 +75,10 @@ class OptimizationModel():
         
         reassigned = np.array_split(cellNodes, self.numLandowners)
 #        print reassigned
-        graph = self.neighborGrouping(graph, reassigned)       
-#        for owner in range(len(reassigned)):
-#            for landCell in reassigned[owner]:
-#                graph.node[landCell]['owner'] = owner+1
+#        graph = self.neighborGrouping(graph, reassigned)       
+        for owner in range(len(reassigned)):
+            for landCell in reassigned[owner]:
+                graph.node[landCell]['owner'] = owner+1
         
 #        graph, d = self.groupCells(graph, reassigned)
 

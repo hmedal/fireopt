@@ -8,7 +8,7 @@ def readGraph(graphFile):
     return nx.read_gml(graphFile)
 
 if __name__ == "__main__":
-    f = open("../../Experiments/Experiments 11-8-2017.txt", "a+")
+    f = open("../../Experiments/Experiments 11-9-2017.txt", "a+")
     f.write("Started " + time.strftime("%c") + "\n")
     f.write("Landscape|Landowners|Budget|Expected Damage|Total Run Time|Second Stage Time|Create Model Time|Optimize Time|Allocation|Levels|Allocation Method|Total Budget Used|Remaining Budget|Maximum Amount Offered|Level Amounts|Area of Each Landowner|Time Completed\n")
     landFiles = ["SantaFe","SanBernardino","Umpqua"]
