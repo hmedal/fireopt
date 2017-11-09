@@ -61,6 +61,7 @@ class OptimizationModel():
         self.method = paramDF['method']
         self.sizeBlocks = paramDF['sizeBlocks']
         self.timeLimit = paramDF['timeLimit']
+        self.landscape = paramDF['landscape']
         #self.graph, self.d = self.reassignLandowners(graph)
         self.graph = self.reassignLandowners(graph)
         self.landowners, self.ownerNums, self.nOwners = self.createLandownersList(graph)
@@ -647,7 +648,7 @@ class OptimizationModel():
             if self.method == 2:
                 allocMethod = "Hybrid"
             #Landowners, Budget, Expected Damage, Total Run Time, Second Stage Time, Create Model Time, Optimize Time, Allocation, Levels, Total Budget Used, Remaining Budget, Maximum Amount Offered, Level Amounts, Area of Each Landowner
-            file.write("%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s\n" % (self.nOwners, self.Budget_param, self.m.objVal, self.time, self.timeScndStg, self.timeCreateModel, self.timeOptimize, allocations, self.numberOfFinancialAsstValues, allocMethod, TotalBudgetUsed, RemainingBudget, self.maxOffered, self.C_k, self.AreaBelongsToLandowners, time.strftime("%c")))
+            file.write("%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s\n" % (self.landscape, self.nOwners, self.Budget_param, self.m.objVal, self.time, self.timeScndStg, self.timeCreateModel, self.timeOptimize, allocations, self.numberOfFinancialAsstValues, allocMethod, TotalBudgetUsed, RemainingBudget, self.maxOffered, self.C_k, self.AreaBelongsToLandowners, time.strftime("%c")))
             print "The file has been updated."
         
         if self.m.status == GRB.Status.TIME_LIMIT:
@@ -658,6 +659,6 @@ class OptimizationModel():
             if self.method == 2:
                 allocMethod = "Hybrid"
             #Landowners, Budget, Expected Damage, Total Run Time, Second Stage Time, Create Model Time, Optimize Time, Allocation, Levels, Total Budget Used, Remaining Budget, Maximum Amount Offered, Level Amounts, Area of Each Landowner
-            file.write("\n\nExperiment exceeded time limit.\nLandowners|Budget|Current ObjVal|Obj Bound|MIP Gap|Total Run Time|Second Stage Time|Optimize Time|Allocation Levels|Allocation Method|Maximum Amount Offered|Level Amounts|Area of Each Landowner|Time Completed\n")
-            file.write("%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s\n\n\n" % (self.nOwners, self.Budget_param, self.m.objVal, self.m.ObjBoundC, self.m.MIPGap, self.time, self.timeScndStg, self.timeLimit, self.numberOfFinancialAsstValues, allocMethod, self.maxOffered, self.C_k, self.AreaBelongsToLandowners, time.strftime("%c")))
+            file.write("\n\nExperiment exceeded time limit.\nLandscape|Landowners|Budget|Current ObjVal|Obj Bound|MIP Gap|Total Run Time|Second Stage Time|Optimize Time|Allocation Levels|Allocation Method|Maximum Amount Offered|Level Amounts|Area of Each Landowner|Time Completed\n")
+            file.write("%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s\n\n\n" % (self.landscape, self.nOwners, self.Budget_param, self.m.objVal, self.m.ObjBoundC, self.m.MIPGap, self.time, self.timeScndStg, self.timeLimit, self.numberOfFinancialAsstValues, allocMethod, self.maxOffered, self.C_k, self.AreaBelongsToLandowners, time.strftime("%c")))
             print "The file has been updated."

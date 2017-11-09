@@ -4,5 +4,6 @@
   "numLandowners" : 3,
   "method" : 0,
   "sizeBlocks" : 10,
-  "timeLimit" : 3600
+  "timeLimit" : 3600,
+  "landscape" : "SantaFe"
 }
