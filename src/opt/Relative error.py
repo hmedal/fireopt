@@ -571,7 +571,7 @@ if __name__ == "__main__":
     ofile = open("Relative error.txt", "a")
     for n in (3, 4, 5, 6):
         paramsDict["numLandowners"] = n
-        budget = 80000
+        budget = 20000
         while budget <= 100000:
             paramsDict["budget"] = budget
             for levels in (2, 5, 10, 15):
