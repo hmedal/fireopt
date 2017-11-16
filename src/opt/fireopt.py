@@ -2,41 +2,38 @@ import argparse
 import networkx as nx
 import optmodel as opt
 import json
-import timeit
-
-#start = timeit.default_timer()
+import time
 
 def readGraph(graphFile):
     return nx.read_gml(graphFile)
 
-
-for n in (3, 4, 5, 6):
-    if __name__ == "__main__":
-        parser = argparse.ArgumentParser(description='Read filenames.')
-        parser.add_argument('-g', '--graph', help='the graph file', default = "../../data/SantaFe.gml")
-        parser.add_argument('-p', '--params', help='the parameters file', default = "../../params/paramsFile.json")
+if __name__ == "__main__":
+    f = open("../../Experiments/Experiments 11-9-2017.txt", "a+")
+    f.write("Started " + time.strftime("%c") + "\n")
+    f.write("Landscape|Landowners|Budget|Expected Damage|Total Run Time|Second Stage Time|Create Model Time|Optimize Time|Allocation|Levels|Allocation Method|Total Budget Used|Remaining Budget|Maximum Amount Offered|Level Amounts|Area of Each Landowner|Time Completed\n")
+    landFiles = ["SantaFe","SanBernardino","Umpqua"]
+    parser = argparse.ArgumentParser(description='Read filenames.')
+    parser.add_argument('-p', '--params', help='the parameters file', default = "../../params/paramsFile.json")
+    for landscape in landFiles:
+        parser.add_argument('-g', '--graph', help='the graph file', default = "../../data/%s.gml" % landscape)
         args = parser.parse_args()
         paramsFile = args.params
         graph = readGraph(args.graph)
         paramsDict = json.loads(open(paramsFile).read())
-        budget = 20000
-        while budget <= 100000:
-            for levels in (2, 5, 10, 15):
-                start = timeit.default_timer()
-                paramsDict["budget"] = budget
-                paramsDict["numFinancialAsstLevels"] = levels
+        paramsDict["landscape"] = landscape
+        for u in (0, 1, 2):
+            paramsDict["method"] = u
+            for n in (3, 4, 5, 6):
                 paramsDict["numLandowners"] = n
-#           optModel = opt.OptimizationModel(graph, paramsDict, None, None)
-                optModel = opt.OptimizationModel(graph, paramsDict)
-#           optModel.optimize()
-#           print "We've made it this far!"
-#                optModel.writeResults('modified Santa Fe results 14')
-#           print "The file has been created."
-                stop = timeit.default_timer()
-                optModel.writeResults('new experiment.txt', start, stop)
-                print "Total run time: %s" % (stop - start)
-            budget = budget + 20000
-    
-#stop = timeit.default_timer()
-
-#print "Total run time: %s" % (stop - start)
+                budget = 20000
+                while budget <= 100000:
+                    paramsDict["budget"] = budget
+                    for levels in (2, 5, 10, 15, 20):
+                        paramsDict["numFinancialAsstLevels"] = levels
+                        for r in range(5):
+                            optModel = opt.OptimizationModel(graph, paramsDict)              
+                            optModel.writeResults(f)
+                            f.flush()
+                    budget = budget + 20000
+    f.write("Ended " + time.strftime("%c"))
+    f.close()
