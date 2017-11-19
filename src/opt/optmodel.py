@@ -17,7 +17,6 @@ import array
 import timeit
 from networkx.generators.classic import grid_2d_graph
 from __builtin__ import str
-from sympy.geometry.util import centroid
 
 class OptimizationModel():
     '''
@@ -33,9 +32,9 @@ class OptimizationModel():
         print "ownerNums", self.ownerNums
         print "number of scenarios: ", self.nScenario
         
-        self.LandOwnerNodeList, self.AreaBelongsToLandowners = self.LandOwnerNodeList(graph)
+        self.LandOwnerNodeList, self.AreaBelongsToLandowners = self.LandOwnerNodeList(self.graph, self.nodeList)
         self.Decision_states = self.CreateScenarioDecisionStates()
-        self.Prob, self.C_k, self.maxOffered = self.ProbDecisionState(paramDF)
+        self.Prob, self.C_k, self.maxOffered = self.ProbDecisionState(self.paramDF)
         self.DecisionProb = self.filterProbDict()
         
         start = timeit.default_timer()
@@ -63,7 +62,7 @@ class OptimizationModel():
         self.sizeBlocks = paramDF['sizeBlocks']
         self.timeLimit = paramDF['timeLimit']
         self.landscape = paramDF['landscape']
-        self.graph = self.reassignLandowners(graph)
+        self.graph, self.nodeList = self.reassignLandowners(graph)
         self.landowners, self.ownerNums, self.nOwners = self.createLandownersList(self.graph)
         self.nScenario = (2)**(self.nOwners)
         self.Cell_area = 3.4595
@@ -110,7 +109,17 @@ class OptimizationModel():
                 distList.append(distance)
             graph.node[node]["owner"] = distList.index(min(distList))
         
-        return graph                    
+        nodeList = {}
+        
+        for owner in range(self.numLandowners):
+            nodeList[owner] = []
+            for node in graph.nodes():
+                if graph.node[node]["owner"] == owner:
+                    nodeList[owner].append(node)
+        
+        print nodeList
+        
+        return graph, nodeList                 
     
     def groupCells(self, graph, cellList):
         #create smaller groups of each landowner's cells and also add group number to the NetworkX graph
@@ -402,7 +411,7 @@ class OptimizationModel():
         The output is the second stage objective value for each scenario
 
     '''
-    def LandOwnerNodeList(self, graph):
+    def LandOwnerNodeList(self, graph, nodeList):
         #Graph = nx.read_gml('../../data/SantaFe with 3 landowners.gml')
         Landowners_node_lst = {}
         for i in range(len(self.ownerNums)):
@@ -414,13 +423,16 @@ class OptimizationModel():
                 if int(node[1]['owner']) == i+1: ##checking the owner of a node in data.gml is the owner in the list
                     Landowners_node_lst[i].append(node[0])
 
-
+        print Landowners_node_lst
+        
         AreaOfLandowners = []  #Stores the total area (acres) belongs to each landowners
         for i in range(len(self.ownerNums)):
-            total_land_area = self.Cell_area*len(Landowners_node_lst[i])
+            total_land_area = self.Cell_area*len(nodeList[i])
             AreaOfLandowners.append(total_land_area)
 
-
+        print AreaOfLandowners
+        exit()
+        
         return Landowners_node_lst, AreaOfLandowners
 
     def spread(self, ignition_points, Land, SPLength, fire_duration):
