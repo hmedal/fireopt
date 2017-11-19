@@ -29,10 +29,11 @@ class OptimizationModel():
     def __init__(self, graph, paramDF, nodeCoords):
         self.setParams(graph, paramDF, nodeCoords)
         
-        print "ownerNums", self.ownerNums
+        self.graph, self.nodeList, self.AreaBelongsToLandowners = self.reassignLandowners(graph)
+       
+        print "ownerNums", range(self.numLandowners)
         print "number of scenarios: ", self.nScenario
         
-        self.LandOwnerNodeList, self.AreaBelongsToLandowners = self.LandOwnerNodeList(self.graph, self.nodeList)
         self.Decision_states = self.CreateScenarioDecisionStates()
         self.Prob, self.C_k, self.maxOffered = self.ProbDecisionState(self.paramDF)
         self.DecisionProb = self.filterProbDict()
@@ -62,28 +63,9 @@ class OptimizationModel():
         self.sizeBlocks = paramDF['sizeBlocks']
         self.timeLimit = paramDF['timeLimit']
         self.landscape = paramDF['landscape']
-        self.graph, self.nodeList = self.reassignLandowners(graph)
-        self.landowners, self.ownerNums, self.nOwners = self.createLandownersList(self.graph)
-        self.nScenario = (2)**(self.nOwners)
         self.Cell_area = 3.4595
-        
-    def reassignLandownersOLD(self, graph):
-        #sequentially and equally assign landowners to the landscape
-        reassigned = []
-
-        cellNodes = np.arange(nx.number_of_nodes(graph))
-        
-        reassigned = np.array_split(cellNodes, self.numLandowners)
-#        print reassigned
-#        graph = self.neighborGrouping(graph, reassigned)       
-        for owner in range(len(reassigned)):
-            for landCell in reassigned[owner]:
-                graph.node[landCell]['owner'] = owner+1
-        
-#        graph, d = self.groupCells(graph, reassigned)
-
-        return graph#, d
-    
+        self.nScenario = (2)**(self.numLandowners)
+          
     def reassignLandowners(self, graph):
         for node in graph.nodes():
             graph.node[node]["coordinates"] = self.nodeCoordinates[str(node)]
@@ -110,69 +92,17 @@ class OptimizationModel():
             graph.node[node]["owner"] = distList.index(min(distList))
         
         nodeList = {}
-        
         for owner in range(self.numLandowners):
             nodeList[owner] = []
             for node in graph.nodes():
                 if graph.node[node]["owner"] == owner:
                     nodeList[owner].append(node)
         
-        print nodeList
+        AreaBelongsToLandowners = []
+        for owner in nodeList:
+            AreaBelongsToLandowners.append(self.Cell_area*len(nodeList[owner]))
         
-        return graph, nodeList                 
-    
-    def groupCells(self, graph, cellList):
-        #create smaller groups of each landowner's cells and also add group number to the NetworkX graph
-        
-        d = {}
-        
-        for j in range(len(cellList)):
-            a = 0
-            group = 0
-            f = len(cellList[j])
-            while f > 0:
-                i = 0
-                block = []
-                while i < self.sizeBlocks and f > 0:
-                    block.append(cellList[j][a])
-                    graph.node[cellList[j][a]]['group'] = group
-                    a = a + 1
-                    i = i + 1
-                    f = f - 1
-                d[j, group] = block
-                group = group + 1
-        
-        return graph, d
-    
-    def neighborGrouping(self, graph, cellList):
-        nx.set_node_attributes(graph, 'reassigned', False)
-        
-        print graph.nodes(data=True)
-#        ggg = nx.adjacency_matrix(graph)
-#        with open("../../Experiments/Experiments printing graph.txt", "a+") as f:
-#        print ggg.todense()
-#        exit()
-        
-        
-#        landGrid = nx.grid_2d_graph
-        
-        
-#        for owner in range(len(cellList)):
-        for owner in range(self.numLandowners):
-            landSize = len(cellList[owner])
-            for adjNodes in graph.adjacency_list():
-                for node in adjNodes:
-                    for x in nx.all_neighbors(graph, node):
-                        if landSize > 0:
-                            if graph.node[x]['reassigned'] == False:
-                                graph.node[x]['owner'] = owner
-                                graph.node[x]['reassigned'] = True
-                                landSize = landSize - 1
-                    else:
-                        break
-        print graph.nodes(data=True)
-        
-        return graph
+        return graph, nodeList, AreaBelongsToLandowners              
 
     def createLandownersList(self, graph):
         #iterate through nodes in graph and return a list of all the unique landowners
@@ -198,7 +128,7 @@ class OptimizationModel():
 
         for n in range(self.nScenario):
             for k in range(self.numberOfFinancialAsstValues):
-                for j in range(self.nOwners):
+                for j in range(self.numLandowners):
                     for l in (0,1):
                         if (n,j,l,k) in self.Prob:
                             if self.Prob[n,j,l,k] > -99:
@@ -218,11 +148,11 @@ class OptimizationModel():
         #Create variables
         for n in range(self.nScenario):
             for k in range(self.numberOfFinancialAsstValues):
-                for j in range(self.nOwners):
+                for j in range(self.numLandowners):
                     w[j, k, n] = m.addVar(vtype=GRB.CONTINUOUS, name="w_j"+str(j)+"_k"+str(k)+"_n"+str(n))
 
         for k in range(self.numberOfFinancialAsstValues):
-            for j in range(self.nOwners):
+            for j in range(self.numLandowners):
                 self.y[j, k] = m.addVar(vtype=GRB.BINARY, name="y_j"+str(j)+"_k"+str(k))
                 
         if self.method == 2:
@@ -238,7 +168,7 @@ class OptimizationModel():
                         for k in range(self.numberOfFinancialAsstValues)), name = "6a_n"+str(n))
 
         #6b updated
-        for r in range(1,self.nOwners):
+        for r in range(1,self.numLandowners):
             for n in range(self.nScenario):
                 m.addConstr(quicksum(w[r-1,k,n] for k in range(self.numberOfFinancialAsstValues)) ==
                             quicksum(w[r,k,n]*(1/max(self.DecisionProb[n,r,k],0.00001))
@@ -247,36 +177,36 @@ class OptimizationModel():
 
         #6c updated
         for k in range(self.numberOfFinancialAsstValues):
-            for r in range(self.nOwners):
+            for r in range(self.numLandowners):
                 for n in range(self.nScenario):
                     m.addConstr(w[r, k, n] <= self.y[r, k]*self.SecondStgValues[n],
                                 name = "6c_j"+str(r)+"_k"+str(k)+"_n"+str(n))
 
         #6e
         m.addConstr(quicksum(quicksum(self.C_k[k]*self.y[j, k] for k in range(self.numberOfFinancialAsstValues))*self.AreaBelongsToLandowners[j]
-                            for j in range(self.nOwners)) <= self.Budget_param, name = "6e")
+                            for j in range(self.numLandowners)) <= self.Budget_param, name = "6e")
 
         #6f
-        for j in range(self.nOwners):
+        for j in range(self.numLandowners):
             m.addConstr(quicksum(self.y[j, k] for k in range(self.numberOfFinancialAsstValues)) == 1,
                         name = "6f_j"+str(j))
             
         #6g -- Uniform
         if self.method == 1:
-            for j in range(self.nOwners-1):
+            for j in range(self.numLandowners-1):
                 for k in range(self.numberOfFinancialAsstValues):
                     m.addConstr(self.y[j, k] == self.y[j+1, k], name = "uniform constraint")
 
         #6h -- Hybrid
         if self.method == 2:
-            for j in range(self.nOwners):
+            for j in range(self.numLandowners):
                 for k in range(1, self.numberOfFinancialAsstValues):
                     m.addConstr(self.y[j, k] <= self.x[k])
             m.addConstr(quicksum(self.x[k] for k in range(1, self.numberOfFinancialAsstValues)) <= 1,
                         name = "hybrid constraint")
 
         #6a -- Objective
-        m.setObjective(quicksum(quicksum(w[self.nOwners-1, k, n] for k in range(self.numberOfFinancialAsstValues))
+        m.setObjective(quicksum(quicksum(w[self.numLandowners-1, k, n] for k in range(self.numberOfFinancialAsstValues))
                                 for n in range(self.nScenario)), GRB.MINIMIZE)
 
         m.update()
@@ -298,11 +228,11 @@ class OptimizationModel():
         The output is the probability of a landowner to accept a cost-share plan for a given amount of financial assistance
     '''
     def CreateScenarioDecisionStates(self):
-        l = [bin(x)[2:].rjust(len(self.ownerNums), '0') for x in range(2**len(self.ownerNums))]
+        l = [bin(x)[2:].rjust(self.numLandowners, '0') for x in range(2**self.numLandowners)]
         #States = np.array([0, 1.0])
         Decision_states = {}
         for s in range(self.nScenario):
-            Decision_states[s] = [int(l[s][j]) for j in range(len(self.ownerNums))]
+            Decision_states[s] = [int(l[s][j]) for j in range(self.numLandowners)]
 
         return Decision_states
 
@@ -342,7 +272,7 @@ class OptimizationModel():
 
         Data_df = pd.read_csv(Data_file, delimiter=',', usecols=[1, 2, 3])
         print "Data_df", Data_df
-        nOwner = (len(self.ownerNums))
+        nOwner = self.numLandowners
         nDecision_state = 2
 
         train_Feature = Data_df['Amount'].as_matrix().reshape(-1, 1)  # we only take the first two features.
@@ -389,13 +319,13 @@ class OptimizationModel():
         ProbDict = {}
 
         for s in range(self.nScenario):
-            for i in range(len(self.ownerNums)):
+            for i in range(self.numLandowners):
                 for j in range(nDecision_state):
                     for k in range(self.numberOfFinancialAsstValues):
                         ProbDict[s, i, j, k] = Estimated_prob[k, j]
 
         for s in range(self.nScenario):
-            for i in range(len(self.ownerNums)):
+            for i in range(self.numLandowners):
                 for k in range(self.numberOfFinancialAsstValues):
                     l= 0
                     if self.Decision_states[s][i]==0:
@@ -411,29 +341,6 @@ class OptimizationModel():
         The output is the second stage objective value for each scenario
 
     '''
-    def LandOwnerNodeList(self, graph, nodeList):
-        #Graph = nx.read_gml('../../data/SantaFe with 3 landowners.gml')
-        Landowners_node_lst = {}
-        for i in range(len(self.ownerNums)):
-            Landowners_node_lst[i] = []
-
-        for node in graph.nodes(data=True):
-        #print "node", node[0]
-            for i in range(len(self.ownerNums)):
-                if int(node[1]['owner']) == i+1: ##checking the owner of a node in data.gml is the owner in the list
-                    Landowners_node_lst[i].append(node[0])
-
-        print Landowners_node_lst
-        
-        AreaOfLandowners = []  #Stores the total area (acres) belongs to each landowners
-        for i in range(len(self.ownerNums)):
-            total_land_area = self.Cell_area*len(nodeList[i])
-            AreaOfLandowners.append(total_land_area)
-
-        print AreaOfLandowners
-        exit()
-        
-        return Landowners_node_lst, AreaOfLandowners
 
     def spread(self, ignition_points, Land, SPLength, fire_duration):
 
@@ -595,7 +502,7 @@ class OptimizationModel():
                 if self.Decision_states[s][Lowner]==1:
                     for r in range(N_Nodes):
                         for q in Neighbor[r]:
-                            if q in self.LandOwnerNodeList[Lowner]:
+                            if q in self.nodeList[Lowner]:
                                 t[q][r]= 100000*60
 
             '#  Rebuilding the graph with time attribute'
@@ -659,13 +566,13 @@ class OptimizationModel():
             for v in self.m.getVars():
                 print('%s %g' % (v.varName, v.x))
             for n in range(self.nScenario):
-                for r in range(self.nOwners):        
+                for r in range(self.numLandowners):        
                     for k in range(self.numberOfFinancialAsstValues):
                         print "[%s,%s,%s] = %s" % (n,r,k,self.DecisionProb[n,r,k])
             allocations = []
             print self.Budget_param, self.m.objVal
             print "offer allocation:"
-            for j in range(self.nOwners):
+            for j in range(self.numLandowners):
                 for k in range(self.numberOfFinancialAsstValues):
                     if self.m.getVarByName("y_j%s_k%s" % (j,k)).x == 1:
                         allocations.append(k)
@@ -674,10 +581,10 @@ class OptimizationModel():
             for k in range(self.numberOfFinancialAsstValues):
                 print self.C_k[k]
             print "area of each landowners:"
-            for j in range(self.nOwners):
+            for j in range(self.numLandowners):
                 print self.AreaBelongsToLandowners[j]
             TotalBudgetUsed = 0
-            for j in range(self.nOwners):
+            for j in range(self.numLandowners):
                 TotalBudgetUsed = TotalBudgetUsed + self.C_k[allocations[j]]*self.AreaBelongsToLandowners[j]
             RemainingBudget = self.Budget_param - TotalBudgetUsed
             if self.method == 0:
@@ -687,7 +594,7 @@ class OptimizationModel():
             if self.method == 2:
                 allocMethod = "Hybrid"
             #Landowners, Budget, Expected Damage, Total Run Time, Second Stage Time, Create Model Time, Optimize Time, Allocation, Levels, Total Budget Used, Remaining Budget, Maximum Amount Offered, Level Amounts, Area of Each Landowner
-            file.write("%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s\n" % (self.landscape, self.nOwners, self.Budget_param, self.m.objVal, self.time, self.timeScndStg, self.timeCreateModel, self.timeOptimize, allocations, self.numberOfFinancialAsstValues, allocMethod, TotalBudgetUsed, RemainingBudget, self.maxOffered, self.C_k, self.AreaBelongsToLandowners, time.strftime("%c")))
+            file.write("%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s\n" % (self.landscape, self.numLandowners, self.Budget_param, self.m.objVal, self.time, self.timeScndStg, self.timeCreateModel, self.timeOptimize, allocations, self.numberOfFinancialAsstValues, allocMethod, TotalBudgetUsed, RemainingBudget, self.maxOffered, self.C_k, self.AreaBelongsToLandowners, time.strftime("%c")))
             print "The file has been updated."
         
         if self.m.status == GRB.Status.TIME_LIMIT:
@@ -699,5 +606,5 @@ class OptimizationModel():
                 allocMethod = "Hybrid"
             #Landowners, Budget, Expected Damage, Total Run Time, Second Stage Time, Create Model Time, Optimize Time, Allocation, Levels, Total Budget Used, Remaining Budget, Maximum Amount Offered, Level Amounts, Area of Each Landowner
             file.write("\n\nExperiment exceeded time limit.\nLandscape|Landowners|Budget|Current ObjVal|Obj Bound|MIP Gap|Total Run Time|Second Stage Time|Optimize Time|Allocation Levels|Allocation Method|Maximum Amount Offered|Level Amounts|Area of Each Landowner|Time Completed\n")
-            file.write("%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s\n\n\n" % (self.landscape, self.nOwners, self.Budget_param, self.m.objVal, self.m.ObjBoundC, self.m.MIPGap, self.time, self.timeScndStg, self.timeLimit, self.numberOfFinancialAsstValues, allocMethod, self.maxOffered, self.C_k, self.AreaBelongsToLandowners, time.strftime("%c")))
+            file.write("%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s\n\n\n" % (self.landscape, self.numLandowners, self.Budget_param, self.m.objVal, self.m.ObjBoundC, self.m.MIPGap, self.time, self.timeScndStg, self.timeLimit, self.numberOfFinancialAsstValues, allocMethod, self.maxOffered, self.C_k, self.AreaBelongsToLandowners, time.strftime("%c")))
             print "The file has been updated."
