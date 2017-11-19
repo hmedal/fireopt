@@ -420,10 +420,10 @@ class OptimizationModel():
         for node in graph.nodes(data=True):
         #print "node", node[0]
             for i in range(len(self.ownerNums)):
-                if int(node[1]['owner']) == i+1: ##checking the owner of a node in data.gml is the owner in the list
+                if int(node[1]['owner']) == i: ##checking the owner of a node in data.gml is the owner in the list
                     Landowners_node_lst[i].append(node[0])
 
-        print Landowners_node_lst
+        print "Landowners_node_lst", Landowners_node_lst
         
         AreaOfLandowners = []  #Stores the total area (acres) belongs to each landowners
         for i in range(len(self.ownerNums)):
