@@ -16,6 +16,8 @@ import os.path
 import array
 import timeit
 from networkx.generators.classic import grid_2d_graph
+from __builtin__ import str
+from sympy.geometry.util import centroid
 
 class OptimizationModel():
     '''
@@ -25,8 +27,8 @@ class OptimizationModel():
     '''
     Constructor
     '''
-    def __init__(self, graph, paramDF):
-        self.setParams(graph, paramDF)
+    def __init__(self, graph, paramDF, nodeCoords):
+        self.setParams(graph, paramDF, nodeCoords)
         
         print "ownerNums", self.ownerNums
         print "number of scenarios: ", self.nScenario
@@ -46,14 +48,14 @@ class OptimizationModel():
         startCreateModel = timeit.default_timer()
         self.m, self.timeOptimize = self.createModel()
         stopCreateModel = timeit.default_timer()
-        self.timeCreateModel = stopCreateModel - stopCreateModel
+        self.timeCreateModel = stopCreateModel - startCreateModel
         
         stop = timeit.default_timer()
         self.time = stop - start
 
-    def setParams(self, graph, paramDF):
-        self.graph = graph
+    def setParams(self, graph, paramDF, nodeCoords):
         self.paramDF = paramDF
+        self.nodeCoordinates = nodeCoords
         self.Budget_param = paramDF['budget']
         self.numberOfFinancialAsstValues = paramDF['numFinancialAsstLevels']
         self.numLandowners = paramDF['numLandowners']
@@ -61,13 +63,12 @@ class OptimizationModel():
         self.sizeBlocks = paramDF['sizeBlocks']
         self.timeLimit = paramDF['timeLimit']
         self.landscape = paramDF['landscape']
-        #self.graph, self.d = self.reassignLandowners(graph)
         self.graph = self.reassignLandowners(graph)
-        self.landowners, self.ownerNums, self.nOwners = self.createLandownersList(graph)
+        self.landowners, self.ownerNums, self.nOwners = self.createLandownersList(self.graph)
         self.nScenario = (2)**(self.nOwners)
         self.Cell_area = 3.4595
         
-    def reassignLandowners(self, graph):
+    def reassignLandownersOLD(self, graph):
         #sequentially and equally assign landowners to the landscape
         reassigned = []
 
@@ -83,6 +84,33 @@ class OptimizationModel():
 #        graph, d = self.groupCells(graph, reassigned)
 
         return graph#, d
+    
+    def reassignLandowners(self, graph):
+        for node in graph.nodes():
+            graph.node[node]["coordinates"] = self.nodeCoordinates[str(node)]
+ 
+        if self.numLandowners == 3:
+            centers = [129, 145, 487]
+        if self.numLandowners == 4:
+            centers = [130, 143, 455, 468]
+        if self.numLandowners == 5:
+            centers = [78, 96, 312, 528, 546]
+        if self.numLandowners == 6:
+            centers = [129, 137, 145, 479, 487, 494]
+        
+        owner = 0
+        for center in centers:
+            graph.node[center]["owner"] = owner
+            owner = owner + 1
+        
+        for node in graph.nodes():
+            distList = []
+            for center in centers:
+                distance = ((graph.node[center]["coordinates"]["x"] - graph.node[node]["coordinates"]["x"])**2 + (graph.node[center]["coordinates"]["y"] - graph.node[node]["coordinates"]["y"])**2)**0.5
+                distList.append(distance)
+            graph.node[node]["owner"] = distList.index(min(distList))
+        
+        return graph                    
     
     def groupCells(self, graph, cellList):
         #create smaller groups of each landowner's cells and also add group number to the NetworkX graph
