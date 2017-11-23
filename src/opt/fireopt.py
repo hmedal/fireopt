@@ -3,12 +3,13 @@ import networkx as nx
 import optmodel as opt
 import json
 import time
+from time import strftime
 
 def readGraph(graphFile):
     return nx.read_gml(graphFile)
 
 if __name__ == "__main__":
-    f = open("../../Experiments/Experiments 11-19-2017.txt", "a+")
+    f = open("../../Experiments/Experiments %s-%s-%s.txt" % (time.strftime("%m"),time.strftime("%d"),time.strftime("%Y")), "a+")
     f.write("Started " + time.strftime("%c") + "\n")
     f.write("Landscape|Landowners|Budget|Expected Damage|Total Run Time|Second Stage Time|Create Model Time|Optimize Time|Allocation|Levels|Allocation Method|Total Budget Used|Remaining Budget|Maximum Amount Offered|Level Amounts|Area of Each Landowner|Time Completed\n")
     parser = argparse.ArgumentParser(description='Read filenames.')
