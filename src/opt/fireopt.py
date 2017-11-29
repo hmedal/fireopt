@@ -13,7 +13,7 @@ if __name__ == "__main__":
     f.write("Started " + time.strftime("%c") + "\n")
     f.write("Landscape|Landowners|Budget|Expected Damage|Total Run Time|Second Stage Time|Create Model Time|Optimize Time|Allocation|Levels|Allocation Method|Total Budget Used|Remaining Budget|Maximum Amount Offered|Level Amounts|Area of Each Landowner|Time Completed\n")
     parser = argparse.ArgumentParser(description='Read filenames.')
-    parser.add_argument('-g', '--graph', help='the graph file', default = "../../data/SantaFe.gml")
+    parser.add_argument('-g', '--graph', help='the graph file', default = "../../data/Santa Fe/SantaFe.gml")
     parser.add_argument('-p', '--params', help='the parameters file', default = "../../params/paramsFile.json")
     parser.add_argument('-c', '--coords', help='node coordinates', default = "../../params/nodeCoordinates.json")
     args = parser.parse_args()

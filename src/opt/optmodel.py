@@ -15,7 +15,6 @@ import pickle
 import os.path
 import array
 import timeit
-from networkx.generators.classic import grid_2d_graph
 from __builtin__ import str
 
 class OptimizationModel():
@@ -83,14 +82,23 @@ class OptimizationModel():
         for center in centers:
             graph.node[center]["owner"] = owner
             owner = owner + 1
-        
+
         for node in graph.nodes():
             distList = []
             for center in centers:
                 distance = ((graph.node[center]["coordinates"]["x"] - graph.node[node]["coordinates"]["x"])**2 + (graph.node[center]["coordinates"]["y"] - graph.node[node]["coordinates"]["y"])**2)**0.5
                 distList.append(distance)
             graph.node[node]["owner"] = distList.index(min(distList))
-        
+
+        '''    
+        for node in graph.nodes():
+            distList = []
+            for center in centers:
+                distance = nx.shortest_path_length(graph, source=node, target=center)
+                distList.append(distance)
+            graph.node[node]["owner"] = distList.index(min(distList))
+        '''
+
         nodeList = {}
         for owner in range(self.numLandowners):
             nodeList[owner] = []

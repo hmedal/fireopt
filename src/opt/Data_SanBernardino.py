@@ -1,14 +1,14 @@
 import math
 
-N_Nodes_width = 25
-N_Nodes_height = 25
+N_Nodes_width = 35
+N_Nodes_height = 35
 N_Nodes = N_Nodes_width * N_Nodes_height
 
-vertical_destance_between_two_cells = 30*4
+vertical_destance_between_two_cells = 30
 'in meters, 30 meteres and four combined cell out of 100 cells to make 25 cells'
-horizontal_destance_between_two_cells = 30*4
+horizontal_destance_between_two_cells = 30
 
-orthogonal_destance_between_two_cells = 169.7
+orthogonal_destance_between_two_cells = 42.43
 
 position = {}
 
@@ -17,7 +17,7 @@ shift = 2
 B = 5
 'Budget'
 
-Distance = 30*4
+Distance = 30
 'Distance from center of cell i to center of cell j'
 
 ProbIgnition = [0.1 for i in range(N_Nodes)]
@@ -30,16 +30,15 @@ with open('../../data/Cell Value.dat', 'r') as g:
     Value_Data = g.readlines()
 
     for vline in Value_Data:
-        vrow = vline.split()        
+        vrow = vline.split()
 
         for i in range(len(vrow)):
-            if float(vrow[i]) > 1 :
-                ValueAtRisk.append(float(vrow[i]))
-            elif float(vrow[i]) == 1 :
-                ValueAtRisk.append(float(vrow[i]))
-            
-    
-ValueAtRisk = [1 for i in range(N_Nodes)]
+            #if float(vrow[i]) > 1 :
+            ValueAtRisk.append(float(vrow[i]))
+            #elif float(vrow[i]) == 1 :
+                #ValueAtRisk.append(float(vrow[i]))
+
+#ValueAtRisk = [1 for i in range(N_Nodes)]
 
 SetOfHighFireIntensity = [i for i in range(N_Nodes)]
 
@@ -121,35 +120,35 @@ ROS = [ [0 for i in range(N_Nodes)] for i in range(N_Nodes)]
 
 Cell_Direction_Fire = []
 
-with open('../../data/Santa Fe/Direction Data Santa Fe.dat', 'r') as f:
+with open('../../data/San Bernardino/Direction Data San Bernardino 12.dat', 'r') as f:
     Direction_Data = f.readlines()
-    
-    for line in Direction_Data:
-        row = line.split()        
 
-        for i in range(len(row)):            
+    for line in Direction_Data:
+        row = line.split()
+
+        for i in range(len(row)):
             Cell_Direction_Fire.append(float(row[i]))
 
 bEllipse = []
-with open('../../data/Santa Fe/b Data Santa Fe.dat', 'r') as ff:
+with open('../../data/San Bernardino/b Data San Bernardino 12.dat', 'r') as ff:
     bData = ff.readlines()
-    
-    for line in bData:
-        row = line.split()        
 
-        for i in range(len(row)):            
+    for line in bData:
+        row = line.split()
+
+        for i in range(len(row)):
             bEllipse.append(float(row[i]))
 
 cEllipse = []
-with open('../../data/Santa Fe/c Data Santa Fe.dat', 'r') as fff:
+with open('../../data/San Bernardino/c Data San Bernardino 12.dat', 'r') as fff:
     cData = fff.readlines()
-    
-    for line in cData:
-        row = line.split()        
 
-        for i in range(len(row)):            
-            cEllipse.append(float(row[i]))  
-        
+    for line in cData:
+        row = line.split()
+
+        for i in range(len(row)):
+            cEllipse.append(float(row[i]))
+
 
 
 for a in range(N_Nodes):
@@ -157,9 +156,7 @@ for a in range(N_Nodes):
         Fire_Direction = Cell_Direction_Fire[a]
 
         bEllipse_length = bEllipse[a]
-        
 
-               
         if b == a + 1:
 
             Angle_with_Neighbor_cell = 0
@@ -168,27 +165,27 @@ for a in range(N_Nodes):
 
             Angle_with_Neighbor_cell = 180
 
-        if b == a + 7:
+        if b == a + N_Nodes_width:
 
             Angle_with_Neighbor_cell = 90
 
-        if b == a - 7:
+        if b == a - N_Nodes_width:
 
             Angle_with_Neighbor_cell = 270
 
-        if b == a + 8:
+        if b == a + N_Nodes_width + 1:
 
             Angle_with_Neighbor_cell = 45
 
-        if b == a - 8:
+        if b == a - N_Nodes_width - 1:
 
             Angle_with_Neighbor_cell = 225
 
-        if b == a + 6:
+        if b == a + N_Nodes_width - 1:
 
             Angle_with_Neighbor_cell = 135
 
-        if b == a - 6:
+        if b == a - (N_Nodes_width - 1):
 
             Angle_with_Neighbor_cell = 315
 
@@ -203,12 +200,15 @@ for a in range(N_Nodes):
 
         if Teta >= 90:
             ROS[a][b] = (bEllipse[a]**2 - cEllipse[a]**2)/(bEllipse[a] + (cEllipse[a]*math.cos((180 - Teta)*(math.pi/180))))
-            
+
+
+for a in range(N_Nodes):
+    for b in Neighbor[a]:
+        if ROS[a][b] == 0:
+            ROS[a][b] = 0.000001
 
 
 
 
-
-        
 
 
