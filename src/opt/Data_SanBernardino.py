@@ -1,7 +1,7 @@
 import math
 
-N_Nodes_width = 35
-N_Nodes_height = 35
+N_Nodes_width = 25
+N_Nodes_height = 25
 N_Nodes = N_Nodes_width * N_Nodes_height
 
 vertical_destance_between_two_cells = 30

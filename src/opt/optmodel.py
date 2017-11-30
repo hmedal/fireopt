@@ -474,7 +474,7 @@ class OptimizationModel():
 
         node_gen = 0
         '''
-
+      
         for s in range(self.nScenario):
             Land = DGG.copy() ####DGG the data graph
             Duration = [24*60]
@@ -582,7 +582,7 @@ class OptimizationModel():
             print "offer allocation:"
             for j in range(self.numLandowners):
                 for k in range(self.numberOfFinancialAsstValues):
-                    if self.m.getVarByName("y_j%s_k%s" % (j,k)).x == 1:
+                    if self.m.getVarByName("y_j%s_k%s" % (j,k)).x > 0.5:
                         allocations.append(k)
                         print "%s: %s" % (j,k)
             print "financial assistance levels:"
