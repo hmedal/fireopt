@@ -9,7 +9,7 @@ def readGraph(graphFile):
     return nx.read_gml(graphFile)
 
 if __name__ == "__main__":
-    f = open("../../Experiments/Experiments %s-%s-%s.txt" % (time.strftime("%m"),time.strftime("%d"),time.strftime("%Y")), "a+")
+    f = open("../../Experiments/%s-%s-%s Experiments.txt" % (time.strftime("%Y"),time.strftime("%m"),time.strftime("%d")), "a+")
     f.write("Started " + time.strftime("%c") + "\n")
     f.write("Landscape|Landowners|Budget|Expected Damage|Total Run Time|Second Stage Time|Create Model Time|Optimize Time|Allocation|Levels|Allocation Method|Total Budget Used|Remaining Budget|Maximum Amount Offered|Level Amounts|Area of Each Landowner|Time Completed\n")
     parser = argparse.ArgumentParser(description='Read filenames.')
@@ -24,7 +24,7 @@ if __name__ == "__main__":
     nodeCoordinates = json.loads(open(nodeCoords).read())
     for u in (0, 1, 2):
         paramsDict["method"] = u
-        for n in (3, 4, 5, 6):
+        for n in (3, 4, 5, 6, 8, 9, 10):
             paramsDict["numLandowners"] = n
             budget = 20000
             while budget <= 100000:

@@ -3,7 +3,7 @@ Created on Dec 13, 2016
 @author: hm568, tb2038, mcm600
 '''
 
-from gurobipy import Model, quicksum, GRB
+#from gurobipy import Model, quicksum, GRB
 import networkx as nx
 import numpy as np
 import pandas as pd
@@ -16,6 +16,7 @@ import os.path
 import array
 import timeit
 from __builtin__ import str
+from networkx.algorithms.distance_measures import radius, center
 
 class OptimizationModel():
     '''
@@ -32,7 +33,7 @@ class OptimizationModel():
        
         print "ownerNums", range(self.numLandowners)
         print "number of scenarios: ", self.nScenario
-        
+        exit()
         self.Decision_states = self.CreateScenarioDecisionStates()
         self.Prob, self.C_k, self.maxOffered = self.ProbDecisionState(self.paramDF)
         self.DecisionProb = self.filterProbDict()
@@ -68,7 +69,8 @@ class OptimizationModel():
     def reassignLandowners(self, graph):
         for node in graph.nodes():
             graph.node[node]["coordinates"] = self.nodeCoordinates[str(node)]
- 
+            
+        '''
         if self.numLandowners == 3:
             centers = [129, 145, 487]
         if self.numLandowners == 4:
@@ -78,23 +80,38 @@ class OptimizationModel():
         if self.numLandowners == 6:
             centers = [129, 137, 145, 479, 487, 495]
         if self.numLandowners == 7:
-            centers = [77, 87, 97, 312, 527, 547, 562]
+            centers = [77, 97, 162, 312, 487, 527, 547]
         if self.numLandowners == 8:
             centers = [153, 159, 165, 171, 453, 459, 465, 471]
         if self.numLandowners == 9:
             centers = [84, 90, 101, 123, 312, 501, 523, 534, 540]
         if self.numLandowners == 10:
             centers = [127, 132, 137, 142, 147, 477, 482, 487, 492, 497]
+        '''
         
+        centerNode = center(graph)[0]
+        graphRadius = radius(graph)
+        xCenter = graph.node[centerNode]["coordinates"]["x"]
+        yCenter = graph.node[centerNode]["coordinates"]["y"]
+        
+        landCenters = []
+        landArea = 2*math.pi/self.numLandowners
+        for piece in range(self.numLandowners):
+            angle = landArea*piece
+            landAreaX = math.floor(xCenter + graphRadius*math.cos(angle))
+            landAreaY = math.floor(yCenter + graphRadius*math.sin(angle))
+            nodeNum = landAreaX*25 + landAreaY
+            landCenters.append(nodeNum)
+
         owner = 0
-        for center in centers:
-            graph.node[center]["owner"] = owner
+        for landCenter in landCenters:
+            graph.node[landCenter]["owner"] = owner
             owner = owner + 1
 
         for node in graph.nodes():
             distList = []
-            for center in centers:
-                distance = ((graph.node[center]["coordinates"]["x"] - graph.node[node]["coordinates"]["x"])**2 + (graph.node[center]["coordinates"]["y"] - graph.node[node]["coordinates"]["y"])**2)**0.5
+            for landCenter in landCenters:
+                distance = ((graph.node[landCenter]["coordinates"]["x"] - graph.node[node]["coordinates"]["x"])**2 + (graph.node[landCenter]["coordinates"]["y"] - graph.node[node]["coordinates"]["y"])**2)**0.5
                 distList.append(distance)
             graph.node[node]["owner"] = distList.index(min(distList))
 
