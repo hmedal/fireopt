@@ -76,7 +76,15 @@ class OptimizationModel():
         if self.numLandowners == 5:
             centers = [78, 96, 312, 528, 546]
         if self.numLandowners == 6:
-            centers = [129, 137, 145, 479, 487, 494]
+            centers = [129, 137, 145, 479, 487, 495]
+        if self.numLandowners == 7:
+            centers = [77, 87, 97, 312, 527, 547, 562]
+        if self.numLandowners == 8:
+            centers = [153, 159, 165, 171, 453, 459, 465, 471]
+        if self.numLandowners == 9:
+            centers = [84, 90, 101, 123, 312, 501, 523, 534, 540]
+        if self.numLandowners == 10:
+            centers = [127, 132, 137, 142, 147, 477, 482, 487, 492, 497]
         
         owner = 0
         for center in centers:
