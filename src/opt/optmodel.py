@@ -3,7 +3,7 @@ Created on Dec 13, 2016
 @author: hm568, tb2038, mcm600
 '''
 
-#from gurobipy import Model, quicksum, GRB
+from gurobipy import Model, quicksum, GRB
 import networkx as nx
 import numpy as np
 import pandas as pd
