@@ -70,24 +70,7 @@ class OptimizationModel():
         for node in graph.nodes():
             graph.node[node]["coordinates"] = self.nodeCoordinates[str(node)]
             
-        '''
-        if self.numLandowners == 3:
-            centers = [129, 145, 487]
-        if self.numLandowners == 4:
-            centers = [130, 143, 455, 468]
-        if self.numLandowners == 5:
-            centers = [78, 96, 312, 528, 546]
-        if self.numLandowners == 6:
-            centers = [129, 137, 145, 479, 487, 495]
-        if self.numLandowners == 7:
-            centers = [77, 97, 162, 312, 487, 527, 547]
-        if self.numLandowners == 8:
-            centers = [153, 159, 165, 171, 453, 459, 465, 471]
-        if self.numLandowners == 9:
-            centers = [84, 90, 101, 123, 312, 501, 523, 534, 540]
-        if self.numLandowners == 10:
-            centers = [127, 132, 137, 142, 147, 477, 482, 487, 492, 497]
-        '''
+        
         
         centerNode = center(graph)[0]
         graphRadius = radius(graph)
@@ -115,14 +98,7 @@ class OptimizationModel():
                 distList.append(distance)
             graph.node[node]["owner"] = distList.index(min(distList))
 
-        '''    
-        for node in graph.nodes():
-            distList = []
-            for center in centers:
-                distance = nx.shortest_path_length(graph, source=node, target=center)
-                distList.append(distance)
-            graph.node[node]["owner"] = distList.index(min(distList))
-        '''
+        
 
         nodeList = {}
         for owner in range(self.numLandowners):
@@ -254,12 +230,7 @@ class OptimizationModel():
 
         return m, time
 
-    '''
-    ProbDecisionState method:
-        The input is a data frame that contains the financial assistance offered to the landowner's and the corresponding decision
-        Calculate the probabilities of a landowner's decision state for a given amount of financial assistance
-        The output is the probability of a landowner to accept a cost-share plan for a given amount of financial assistance
-    '''
+   
     def CreateScenarioDecisionStates(self):
         l = [bin(x)[2:].rjust(self.numLandowners, '0') for x in range(2**self.numLandowners)]
         #States = np.array([0, 1.0])
@@ -269,35 +240,7 @@ class OptimizationModel():
 
         return Decision_states
 
-    '''
-
-    def CreateLogRegDataFile(self):  ##newly added method
-
-        Financial_level_data = "../../data/AsstanceLevel_probability.csv"
-        Financial_level_df = pd.read_csv(Financial_level_data, delimiter=',', usecols=[0, 1, 2])
-        nRow_LogRegression = len(Financial_level_df) * self.numberOfRowforEachlevel
-        columns = ['OwnerIdx', 'Amount', 'Decision']
-        LogRegression_df = pd.DataFrame(index=range(0, nRow_LogRegression), columns=columns)
-
-        for row in range(len(Financial_level_df)):
-            for i in range(self.numberOfRowforEachlevel):
-                LogRegression_df['OwnerIdx'][row * self.numberOfRowforEachlevel + i] = row * self.numberOfRowforEachlevel + i
-                LogRegression_df['Amount'][row * self.numberOfRowforEachlevel + i] = random.uniform(
-                    Financial_level_df['Amount_LL'][row],
-                    Financial_level_df['Amount_UL'][row])
-                # LogRegression_df['Level'][k * numberOfRowforEachlevel + i] = k
-                LogRegression_df['Decision'][row * self.numberOfRowforEachlevel + i] = np.random.choice(np.arange(0, 2),
-                                                                                                   p=[1 -
-                                                                                                      Financial_level_df[
-                                                                                                          'Probability'][
-                                                                                                          row],
-                                                                                                      Financial_level_df[
-                                                                                                          'Probability'][
-                                                                                                          row]])
-
-        return LogRegression_df
-
-    '''
+    
 
     def ProbDecisionState(self, paramDF):
 
@@ -308,7 +251,7 @@ class OptimizationModel():
         nOwner = self.numLandowners
         nDecision_state = 2
 
-        train_Feature = Data_df['Amount'].as_matrix().reshape(-1, 1)  # we only take the first two features.
+        train_Feature = Data_df['Amount'].as_matrix().reshape(-1, 1)  
         train_Target = Data_df['Decision'].as_matrix()
 
 
@@ -316,7 +259,7 @@ class OptimizationModel():
 
         logreg = linear_model.LogisticRegression(C=1e5)
 
-        # we create an instance of Neighbours Classifier and fit the data.
+        
         logreg.fit(train_Feature, train_Target.astype(str))
 
         #np.set_printoptions(threshold=1000000)
@@ -328,19 +271,11 @@ class OptimizationModel():
 
         Amount_increment = (maximum_amount_offered - minimum_amount_offered) / (self.numberOfFinancialAsstValues - 1)
 
-        DiscretizedFinancialAmountValues = []  ##Contains the financial amount (money) values that defines the upper and lower bounds of the financial assistance levels.
+        DiscretizedFinancialAmountValues = []  
         DiscretizedFinancialAmountValues.append(minimum_amount_offered)
         for i in range(self.numberOfFinancialAsstValues - 1):
             DiscretizedFinancialAmountValues.append(DiscretizedFinancialAmountValues[
-                                                        -1] + Amount_increment)  ##Add the amount increment to the last element added to the list to construct the bound of the financial assistance levels.
-        '''
-        CostOfFinancialAssistanceLevels = []  ##Contains the costs regarding the financial assistance values. They are the midpoints of the upper and lower bounds of the corresponding financial assistance values.
-        CostOfFinancialAssistanceLevels.append(
-            DiscretizedFinancialAmountValues[0])  # the first element is inserted manually
-        for j in range(1, len(DiscretizedFinancialAmountValues)):
-            CostOfFinancialAssistanceLevels.append(
-                (DiscretizedFinancialAmountValues[j - 1] + DiscretizedFinancialAmountValues[j]) / 2.0)
-        '''
+                                                        -1] + Amount_increment)  
 
         InputArrayForProbEstimation = np.array(DiscretizedFinancialAmountValues)
         print "InputArrayForProbEstimation", InputArrayForProbEstimation
@@ -367,14 +302,6 @@ class OptimizationModel():
 
         return ProbDict, DiscretizedFinancialAmountValues, maximum_amount_offered
 
-
-    '''
-    CalcSecondStageValue method:
-         Calculate the second stage objective value
-        The output is the second stage objective value for each scenario
-
-    '''
-
     def spread(self, ignition_points, Land, SPLength, fire_duration):
 
         SumBurnt = 0
@@ -399,8 +326,7 @@ class OptimizationModel():
                 SumBurnt += ValueAtRisk[nod]
 
                 if Land.node[nod]['fire'] == 1:
-                    Land.node[nod]['color'] = 'r'   ###what's the use of different color-illustration
-
+                    Land.node[nod]['color'] = 'r'   
                 if Land.node[nod]['fire'] == 2:
                     Land.node[nod]['color'] = 'y'
 
@@ -421,7 +347,7 @@ class OptimizationModel():
 
         return (SumBurnt, Burnt_WUI)
 
-    def Generate_Random_igpoint(self, Num_igpoints): #randomly generate upto 5 ignition point
+    def Generate_Random_igpoint(self, Num_igpoints): 
 
         correctOrder = False
 
@@ -484,29 +410,14 @@ class OptimizationModel():
 
     def CalcAllSecondStageValues(self):
         secondStageValues = {}
-
-        '''
-        #Undo the fixing of the set of wildfire sub scenarios
-        scenario_nodelist = {}
-        fname = str(self.nScenario) + 'scenario_nodelist.txt'
-        if os.path.isfile(fname):
-            f = open(fname, 'rb')  # Pickle file is newly created
-            scenario_nodelist = pickle.load(f)  # dump data to f
-            f.close()
-
-        #secondStageValues[s] = self.CalcSecondStageValue()
-        nodes = []  # list of nodes
-
-        node_gen = 0
-        '''
       
         for s in range(self.nScenario):
-            Land = DGG.copy() ####DGG the data graph
+            Land = DGG.copy()
             Duration = [24*60]
             fire_duration = Duration[0] ##data
             for nod in Land.nodes():
                 Land.node[nod]['color'] = 'g'
-                Land.node[nod]['fire_arrival_time'] = fire_duration + 100 ## Add 100 to make it very large initially
+                Land.node[nod]['fire_arrival_time'] = fire_duration + 100 
                 Land.node[nod]['fire'] = 0
                 Land.node[nod]['is_it_burned'] = 0
                 if ValueAtRisk[nod] > 1:
@@ -515,14 +426,14 @@ class OptimizationModel():
                 else:
                     Land.node[nod]['WUI'] = 0
 
-            #fire_duration = Duration[0]
-            MaxDuration = max(Duration) + 100 ## Duration comes from where...why add 100??
+           
+            MaxDuration = max(Duration) + 100 
 
-            t = [[MaxDuration for i in range(N_Nodes)] for i in range(N_Nodes)]  ## where from N_nodes comes-the data
+            t = [[MaxDuration for i in range(N_Nodes)] for i in range(N_Nodes)]  
 
             for r in range(N_Nodes):
 
-                for q in Neighbor[r]:  ##where the neighbors of the nodes are defined
+                for q in Neighbor[r]:  
 
                     distance_q_r = DGG[q][r]['weight']
                     t[q][r] = distance_q_r/ROS[q][r]
@@ -538,8 +449,8 @@ class OptimizationModel():
                             if q in self.nodeList[Lowner]:
                                 t[q][r]= 100000*60
 
-            '#  Rebuilding the graph with time attribute'
-            Landscape = DGG.copy() ##got the landscape with time as the distance
+        
+            Landscape = DGG.copy() 
 
             for link in DGG.edges():
                 Landscape.add_edge(link[0],link[1], Time_Distance = t[link[0]][link[1]])
@@ -560,14 +471,7 @@ class OptimizationModel():
 
             while (Number_Sub_scenario_counted < Max_Num__sub_Scenario):
 
-                '''Undo the fixing of the set of wildfire sub scenarios
-                if os.path.isfile(fname):
-                    nodes = scenario_nodelist[s]
-                else:
-                    if node_gen == 0:
-                        nodes.append(self.Generate_Random_igpoint(Num_igpoints))
-                igpoints = nodes[Number_Sub_scenario_counted][:Num_igpoints]
-                '''
+                
                 nodes.append(self.Generate_Random_igpoint(Num_igpoints))
                 igpoints = nodes[Number_Sub_scenario_counted][:Num_igpoints]
                 Number_Sub_scenario_counted += 1
@@ -576,21 +480,12 @@ class OptimizationModel():
             Total_Burnt = sum([i[0] for i in Burnt])
             (AveWUIBurnt,STDWUIBurnt) = self.SDCalculate(Burnt,Number_Sub_scenario_counted,1)
             secondStageValues[s] = AveBurnt
-            #scenario_nodelist[s] = nodes
-            #node_gen = node_gen + 1
+          
             print "Scenario %s" % (s)
-        # fill in here
-        '''Undo the fixing of the set of wildfire sub scenarios
-        if os.path.isfile(fname) == False:
-            f = open(fname, 'wb')  # Pickle file is newly created
-            pickle.dump(scenario_nodelist, f)  # dump data to f
-            f.close()
-        '''
+        
         return secondStageValues
 
-    #def CalcSecondStageValue(self):
-        # this will need to wait
-        #return SecondStageValue 
+    
 
     def writeResults(self, file):
         #f = open(file, "a+")
@@ -626,7 +521,7 @@ class OptimizationModel():
                 allocMethod = "Uniform"
             if self.method == 2:
                 allocMethod = "Hybrid"
-            #Landowners, Budget, Expected Damage, Total Run Time, Second Stage Time, Create Model Time, Optimize Time, Allocation, Levels, Total Budget Used, Remaining Budget, Maximum Amount Offered, Level Amounts, Area of Each Landowner
+   
             file.write("%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s\n" % (self.landscape, self.numLandowners, self.Budget_param, self.m.objVal, self.time, self.timeScndStg, self.timeCreateModel, self.timeOptimize, allocations, self.numberOfFinancialAsstValues, allocMethod, TotalBudgetUsed, RemainingBudget, self.maxOffered, self.C_k, self.AreaBelongsToLandowners, time.strftime("%c")))
             print "The file has been updated."
         
