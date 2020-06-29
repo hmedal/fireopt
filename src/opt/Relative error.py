@@ -62,7 +62,7 @@ class OptimizationModel():
         return graph
 
     def createLandownersList(self):
-        # iterate through nodes in graph and return a list of all the unique landowners
+
         landowners = {}
         ownerNames = []
         ownerNums = []
@@ -194,12 +194,7 @@ class OptimizationModel():
 
         return m
 
-    '''
-    ProbDecisionState method:
-        The input is a data frame that contains the financial assistance offered to the landowner's and the corresponding decision
-        Calculate the probabilities of a landowner's decision state for a given amount of financial assistance
-        The output is the probability of a landowner to accept a cost-share plan for a given amount of financial assistance
-    '''
+    
 
     def CreateScenarioDecisionStates(self):
         l = [bin(x)[2:].rjust(len(self.ownerNums), '0') for x in range(2 ** len(self.ownerNums))]
@@ -221,17 +216,17 @@ class OptimizationModel():
         nOwner = (len(self.ownerNums))
         nDecision_state = 2
 
-        train_Feature = Data_df['Amount'].as_matrix().reshape(-1, 1)  # we only take the first two features.
+        train_Feature = Data_df['Amount'].as_matrix().reshape(-1, 1)  
         train_Target = Data_df['Decision'].as_matrix()
 
         h = .02  # step size in the mesh
 
         logreg = linear_model.LogisticRegression(C=1e5)
 
-        # we create an instance of Neighbours Classifier and fit the data.
+        
         logreg.fit(train_Feature, train_Target.astype(str))
 
-        # np.set_printoptions(threshold=1000000)
+        
         minimum_amount_offered = Data_df['Amount'].min()
         maximum_amount_offered = Data_df['Amount'].max()
 
@@ -240,27 +235,20 @@ class OptimizationModel():
 
         Amount_increment = (maximum_amount_offered - minimum_amount_offered) / (self.numberOfFinancialAsstValues - 1)
 
-        DiscretizedFinancialAmountValues = []  ##Contains the financial amount (money) values that defines the upper and lower bounds of the financial assistance levels.
+        DiscretizedFinancialAmountValues = [] 
         DiscretizedFinancialAmountValues.append(minimum_amount_offered)
         for i in range(self.numberOfFinancialAsstValues - 1):
             DiscretizedFinancialAmountValues.append(DiscretizedFinancialAmountValues[
-                                                        -1] + Amount_increment)  ##Add the amount increment to the last element added to the list to construct the bound of the financial assistance levels.
-        '''
-        CostOfFinancialAssistanceLevels = []  ##Contains the costs regarding the financial assistance values. They are the midpoints of the upper and lower bounds of the corresponding financial assistance values.
-        CostOfFinancialAssistanceLevels.append(
-            DiscretizedFinancialAmountValues[0])  # the first element is inserted manually
-        for j in range(1, len(DiscretizedFinancialAmountValues)):
-            CostOfFinancialAssistanceLevels.append(
-                (DiscretizedFinancialAmountValues[j - 1] + DiscretizedFinancialAmountValues[j]) / 2.0)
-        '''
+                                                        -1] + Amount_increment)  
+        
 
         InputArrayForProbEstimation = np.array(DiscretizedFinancialAmountValues)
         print "InputArrayForProbEstimation", InputArrayForProbEstimation
 
         Estimated_prob = logreg.predict_proba(InputArrayForProbEstimation.reshape(-1, 1))
-        # print Estimated_prob
+        
 
-        # Put the result into a dictionary
+       
         ProbDict = {}
 
         for s in range(self.nScenario):
@@ -279,15 +267,10 @@ class OptimizationModel():
 
         return ProbDict, DiscretizedFinancialAmountValues, maximum_amount_offered
 
-    '''
-    CalcSecondStageValue method:
-         Calculate the second stage objective value
-        The output is the second stage objective value for each scenario
-
-    '''
+   
 
     def LandOwnerNodeList(self):
-        # Graph = nx.read_gml('../../data/SantaFe with 3 landowners.gml')
+        
         Landowners_node_lst = {}
         for i in range(len(self.ownerNums)):
             Landowners_node_lst[i] = []
@@ -295,10 +278,10 @@ class OptimizationModel():
         for node in self.graph.nodes(data=True):
             # print "node", node[0]
             for i in range(len(self.ownerNums)):
-                if int(node[1]['owner']) == i + 1:  ##checking the owner of a node in data.gml is the owner in the list
+                if int(node[1]['owner']) == i + 1:  
                     Landowners_node_lst[i].append(node[0])
 
-        AreaOfLandowners = []  # Stores the total area (acres) belongs to each landowners
+        AreaOfLandowners = [] 
         for i in range(len(self.ownerNums)):
             total_land_area = self.Cell_area * len(Landowners_node_lst[i])
             AreaOfLandowners.append(total_land_area)
@@ -329,7 +312,7 @@ class OptimizationModel():
                 SumBurnt += ValueAtRisk[nod]
 
                 if Land.node[nod]['fire'] == 1:
-                    Land.node[nod]['color'] = 'r'  ###what's the use of different color-illustration
+                    Land.node[nod]['color'] = 'r'  
 
                 if Land.node[nod]['fire'] == 2:
                     Land.node[nod]['color'] = 'y'
@@ -351,7 +334,7 @@ class OptimizationModel():
 
         return (SumBurnt, Burnt_WUI)
 
-    def Generate_Random_igpoint(self, Num_igpoints):  # randomly generate upto 5 ignition point
+    def Generate_Random_igpoint(self, Num_igpoints):  
 
         correctOrder = False
 
@@ -413,8 +396,6 @@ class OptimizationModel():
     def CalcAllSecondStageValues(self):
         secondStageValues = {}
 
-
-        #Undo the fixing of the set of wildfire sub scenarios
         scenario_nodelist = {}
         fname = str(self.nScenario) + 'scenario_nodelist.txt'
         if os.path.isfile(fname):
@@ -422,19 +403,19 @@ class OptimizationModel():
             scenario_nodelist = pickle.load(f)  # dump data to f
             f.close()
 
-        #secondStageValues[s] = self.CalcSecondStageValue()
-        nodes = []  # list of nodes
+        
+        nodes = []  
 
         node_gen = 0
 
 
         for s in range(self.nScenario):
-            Land = DGG.copy()  ####DGG the data graph
+            Land = DGG.copy()  
             Duration = [24 * 60]
-            fire_duration = Duration[0]  ##data
+            fire_duration = Duration[0]  
             for nod in Land.nodes():
                 Land.node[nod]['color'] = 'g'
-                Land.node[nod]['fire_arrival_time'] = fire_duration + 100  ## Add 100 to make it very large initially
+                Land.node[nod]['fire_arrival_time'] = fire_duration + 100  
                 Land.node[nod]['fire'] = 0
                 Land.node[nod]['is_it_burned'] = 0
                 if ValueAtRisk[nod] > 1:
@@ -444,21 +425,18 @@ class OptimizationModel():
                     Land.node[nod]['WUI'] = 0
 
             # fire_duration = Duration[0]
-            MaxDuration = max(Duration) + 100  ## Duration comes from where...why add 100??
+            MaxDuration = max(Duration) + 100 
 
-            t = [[MaxDuration for i in range(N_Nodes)] for i in range(N_Nodes)]  ## where from N_nodes comes-the data
+            t = [[MaxDuration for i in range(N_Nodes)] for i in range(N_Nodes)]  
 
             for r in range(N_Nodes):
 
-                for q in Neighbor[r]:  ##where the neighbors of the nodes are defined
+                for q in Neighbor[r]: 
 
                     distance_q_r = DGG[q][r]['weight']
                     t[q][r] = distance_q_r / ROS[q][r]
 
-                    'Distance between neighbor nodes is set'
-                    'to the weight of the graph, so we can use weight instead'
-
-            ###modify the time distance for the treated cells
+             
             for Lowner in range(len(self.Decision_states[s])):
                 if self.Decision_states[s][Lowner] == 1:
                     for r in range(N_Nodes):
@@ -466,9 +444,8 @@ class OptimizationModel():
                             if q in self.LandOwnerNodeList[Lowner]:
                                 t[q][r] = 100000 * 60
 
-            '#  Rebuilding the graph with time attribute'
-            Landscape = DGG.copy()  ##got the landscape with time as the distance
-
+            
+            Landscape = DGG.copy()  
             for link in DGG.edges():
                 Landscape.add_edge(link[0], link[1], Time_Distance=t[link[0]][link[1]])
 
@@ -479,7 +456,7 @@ class OptimizationModel():
             Num_igpoints = 5
             Max_Num__sub_Scenario = 5000
 
-            #nodes = []  # comment out this here when fixing the wildfire sub-scenarios fixed in all scenarios and replications
+        
 
             Burnt = []
             # SumBurnt = 0
@@ -487,19 +464,15 @@ class OptimizationModel():
             AveBurnt = 0
 
             while (Number_Sub_scenario_counted < Max_Num__sub_Scenario):
-                #Undo the fixing of the set of wildfire sub scenarios
+               
                 if os.path.isfile(fname):
                     nodes = scenario_nodelist[s]
                     print "File exists.................................."
                 else:
-                    if node_gen == 0:  #generate random nodes only for the first scenario
+                    if node_gen == 0:  
                         nodes.append(self.Generate_Random_igpoint(Num_igpoints))
                 igpoints = nodes[Number_Sub_scenario_counted][:Num_igpoints]
-                '''
-                Comment out this section for fixing the wildfire sample
-                nodes.append(self.Generate_Random_igpoint(Num_igpoints))
-                igpoints = nodes[Number_Sub_scenario_counted][:Num_igpoints]
-                '''
+                
                 Number_Sub_scenario_counted += 1
                 Burnt.append(self.spread(igpoints, Land, SPLength, fire_duration))
                 (AveBurnt, SDBurnt) = self.SDCalculate(Burnt, Number_Sub_scenario_counted, 0)
@@ -509,18 +482,18 @@ class OptimizationModel():
             scenario_nodelist[s] = nodes
             node_gen = node_gen + 1
             print "Scenario %s" % (s)
-        # fill in here
-        #Undo the fixing of the set of wildfire sub scenarios
+        
+        
         if os.path.isfile(fname) == False:
-            f = open(fname, 'wb')  # Pickle file is newly created
-            pickle.dump(scenario_nodelist, f)  # dump data to f
+            f = open(fname, 'wb')  
+            pickle.dump(scenario_nodelist, f)  
             f.close()
 
         return secondStageValues
 
 
     def writeResults(self):
-        #f = open(file, "a+")
+        
         if self.m.status == GRB.Status.OPTIMAL:
             print ('\nOBJECTIVE VALUE: %g' % self.m.objVal)
             for v in self.m.getVars():
@@ -537,7 +510,7 @@ class OptimizationModel():
                     if self.m.getVarByName("y_j%s_k%s" % (j, k)).x == 1:
                         allocations.append(k)
                         print "%s: %s" % (j, k)
-            print "financial assistance levels:"
+            
             for k in range(self.numberOfFinancialAsstValues):
                 print self.C_k[k]
             print "area of each landowners:"
